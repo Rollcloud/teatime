@@ -26,3 +26,10 @@ def chat():
     if name == '' or room == '':
         return redirect(url_for('.index'))
     return render_template('chat.html', name=name, room=room)
+
+
+@main.route('/open')
+def open():
+    """All rooms. The user's name must be stored in the session."""
+    name = session.get('name', "Guest")
+    return render_template('open.html', name=name)

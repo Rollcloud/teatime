@@ -19,5 +19,6 @@
             {{ form.room.label }}: {{ form.room() }} {% for error in form.room.errors %}{{ error }}{% endfor %}<br>
             {{ form.submit() }}
         </form>
+        <a href="{{ url_for('main.open') }}">Open Entry</a>
     </body>
 </html>
