@@ -1,0 +1,27 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+click = "==7.0"
+dnspython = "==1.16.0"
+eventlet = "==0.25.1"
+flask-socketio = "==4.2.1"
+flask-wtf = "==0.14.3"
+greenlet = "==0.4.15"
+itsdangerous = "==1.1.0"
+monotonic = "==1.5"
+python-engineio = "==3.11.2"
+python-socketio = "==4.4.0"
+six = "==1.14.0"
+wtforms = "==2.2.1"
+Flask = "==1.1.1"
+Jinja2 = "==2.11.1"
+MarkupSafe = "==1.1.1"
+Werkzeug = "==1.0.0"
+
+[requires]
+python_version = "3.6"
