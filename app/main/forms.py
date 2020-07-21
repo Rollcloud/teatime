@@ -1,9 +1,9 @@
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms.fields import StringField, SubmitField
 from wtforms.validators import Required
 
 
-class LoginForm(Form):
+class LoginForm(FlaskForm):
     """Accepts a nickname."""
 
     name = StringField('Name', validators=[Required()])
