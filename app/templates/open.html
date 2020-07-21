@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>ChatTime - Open</title>
+        <title>ChatTime - Open Area</title>
         <style type="text/css">
             body {
                 /* https://uigradients.com/#OrangeCoral */
@@ -16,7 +16,7 @@
             $(document).ready(function(){
                 socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
                 socket.on('connect', function() {
-                    socket.emit('joined', {});
+                    socket.emit('joined_open', {});
                 });
                 socket.on('status', function(data) {
                     $('#chat').val($('#chat').val() + '<' + data.msg + '>\n');
@@ -27,11 +27,32 @@
                     $('#chat').scrollTop($('#chat')[0].scrollHeight);
                 });
             });
+            function leave_open() {
+                socket.emit('left_open', {}, function() {
+                    socket.disconnect({'loudly': false});
+
+                    // go back to the login page
+                    window.location.href = "{{ url_for('main.index') }}";
+                });
+            }
         </script>
     </head>
     <body>
-        <h1>ChatTime - Open</h1>
+        <h1>ChatTime - Open Area</h1>
         <textarea id="chat" cols="80" rows="20"></textarea><br><br>
-        <a href="{{ url_for('main.index') }}">Leave</a>
+        <p>Welcome <strong>{{ name }}</strong>.</p>
+        <ul id="areas">
+        {% for room in areas %}
+            <li><a href="{{ url_for('main.chat', rid=room.rid) }}">{{ room.name }}</a>
+                <ul>
+                {% for member in room.members.values() %}
+                    <li>{{ member.name }}</li>
+                {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+        </ul>
+        <a href="{{ url_for('main.chat_new') }}">Begin new conversation</a>
+        <a href="#" onclick="leave_open();">Leave</a>
     </body>
 </html>

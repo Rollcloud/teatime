@@ -17,6 +17,7 @@
                 socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
                 socket.on('connect', function() {
                     socket.emit('joined', {});
+                    socket.emit('joined_open', {'loudly': false});
                 });
                 socket.on('status', function(data) {
                     $('#chat').val($('#chat').val() + '<' + data.msg + '>\n');
@@ -37,10 +38,10 @@
             });
             function leave_room() {
                 socket.emit('left', {}, function() {
-                    socket.disconnect();
+                    socket.disconnect({'loudly': false});
 
-                    // go back to the login page
-                    window.location.href = "{{ url_for('main.index') }}";
+                    // go back to the open area
+                    window.location.href = "{{ url_for('main.open') }}";
                 });
             }
         </script>
