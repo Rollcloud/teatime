@@ -35,7 +35,7 @@ def watering_hole():
 
     # trim areas list of empty rooms
     rooms = [area for area in list(current_app.areas.values())]
-    return render_template('village-green.html', name=name, areas=rooms)
+    return render_template('watering-hole.html', name=name, areas=rooms)
 
 
 @main.route('/open')
