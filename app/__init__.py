@@ -9,6 +9,9 @@ def create_app(debug=False):
     app = Flask(__name__)
     app.debug = debug
     app.config['SECRET_KEY'] = 'gjr39dkjn344_!67#'
+    app.config['SESSION_PERMANENT'] = True
+
+    app.config.update(SESSION_COOKIE_SAMESITE='Lax')
 
     with app.app_context():
         current_app.areas = {}
