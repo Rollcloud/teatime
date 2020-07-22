@@ -2,10 +2,11 @@ import uuid
 
 
 class Member:
-    def __init__(self, token, name):
+    def __init__(self, token, name, emoji):
         """Create a new member. Members can join rooms."""
         self.token = token
         self.name = name
+        self.emoji = emoji
 
 
 class Area:
@@ -22,9 +23,9 @@ class Area:
         self.members.pop(token, None)
 
 
-def add_member_to_area(areas, token, member_name, rid):
+def add_member_to_area(areas, token, member_name, member_emoji, rid):
     print(f"⭐ Adding {token[:6]}({member_name}) to {rid}")
-    member = Member(token, member_name)
+    member = Member(token, member_name, member_emoji)
     try:
         areas[rid].add_member(member)
         return rid

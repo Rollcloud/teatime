@@ -44,7 +44,9 @@
         min-height: inherit;
       }
 
-      .user-avatar {    font-family: Ubuntu;}
+      .user-avatar {
+        font-family: Ubuntu;
+      }
 
       #bg-filter {
         background-color: rgba(0, 0, 0, 0.3);
@@ -126,14 +128,15 @@
                   {{ form.name(class_="mdl-textfield__input") }}
                   {{ form.name.label(class_="mdl-textfield__label") }}
                 </div>
-                <button id="emoji-button" type="button">👤</button>
+                <button id="emoji-button" class="user-avatar" type="button">{{
+                  form.emoji.data }}</button>
                 {{ form.emoji() }}
                 {% for error in form.name.errors %}{{ error }}{% endfor %}
 
                 <br>
                 <!-- Example Contact Chip -->
                 <div class="chip mdl-chip mdl-chip--contact">
-                  <span class="mdl-chip__contact user-avatar">👤</span>
+                  <span class="mdl-chip__contact user-avatar">{{ form.emoji.data }}</span>
                   <span class="mdl-chip__text user-name">{{ form.name.data }}</span>
                 </div>
                 <br>

@@ -22,10 +22,11 @@ def joined_open(message):
     """Sent by clients when they begin open conversations."""
     token = session.get('token')
     name = session.get('name')
+    emoji = session.get('emoji')
     rid = 'open'
     print(f"⭐ {token[:6]}({name}) joined {rid}")
     join_room(rid)
-    actors.add_member_to_area(current_app.areas, token, name, rid)
+    actors.add_member_to_area(current_app.areas, token, name, emoji, rid)
     # if 'loudly' not in message or message['loudly']:
     #     emit('status', {'msg': name + ' has entered the open area.'}, room=rid)
 
@@ -36,10 +37,11 @@ def joined(message):
     A status message is broadcast to all people in the room."""
     token = session.get('token')
     name = session.get('name')
+    emoji = session.get('emoji')
     rid = session.get('room')
     print(f"⭐ {token[:6]}({name}) joined {rid}")
     join_room(rid)
-    actors.add_member_to_area(current_app.areas, token, name, rid)
+    actors.add_member_to_area(current_app.areas, token, name, emoji, rid)
     emit('status', {'msg': f"{name} has entered the room '{rid[:6]}'."}, room=rid)
 
 
@@ -86,7 +88,7 @@ def left_open(message):
 
 
 @socketio.on("disconnect", namespace="/chat")
-def disconnect(message):
+def disconnect(message={}):
     token = session.get('token')
     name = session.get('name')
     print(f"⭐ {token[:6]}({name}) disconnecting")

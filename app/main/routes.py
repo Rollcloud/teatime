@@ -21,9 +21,11 @@ def login():
     if form.validate_on_submit():
         session['token'] = "T" + session.get('csrf_token')
         session['name'] = form.name.data
+        session['emoji'] = form.emoji.data
         return redirect(url_for('.watering_hole'))
     elif request.method == 'GET':
         form.name.data = session.get('name', '')
+        form.emoji.data = session.get('emoji', '👤')
 
     return render_template('login.html', form=form)
 
@@ -37,15 +39,17 @@ def watering_hole():
     if name == '':
         return redirect(url_for('.login'))
 
+    emoji = session.get('emoji', '')
+
     _OPEN = 'open'
     # if open area does not yet exist, create it
     if _OPEN not in current_app.areas:
         current_app.areas[_OPEN] = Area(rid=_OPEN)
-    session['room'] = add_member_to_area(current_app.areas, token, name, _OPEN)
+    session['room'] = add_member_to_area(current_app.areas, token, name, emoji, _OPEN)
 
     # trim areas list of empty rooms
     rooms = [area for area in list(current_app.areas.values())]
-    return render_template('watering-hole.html', name=name, areas=rooms)
+    return render_template('watering-hole.html', name=name, avatar=emoji, areas=rooms)
 
 
 @main.route('/open')
@@ -56,11 +60,13 @@ def open():
     if name == '':
         return redirect(url_for('.login'))
 
+    emoji = session.get('emoji', '')
+
     _OPEN = 'open'
     # if open area does not yet exist, create it
     if _OPEN not in current_app.areas:
         current_app.areas[_OPEN] = Area(rid=_OPEN)
-    session['room'] = add_member_to_area(current_app.areas, token, name, _OPEN)
+    session['room'] = add_member_to_area(current_app.areas, token, name, emoji, _OPEN)
 
     # trim areas list of empty rooms
     rooms = [area for area in list(current_app.areas.values())]
@@ -81,6 +87,8 @@ def chat(rid):
     if name == '':
         return redirect(url_for('.login'))
 
-    rid = add_member_to_area(current_app.areas, token, name, rid)
+    emoji = session.get('emoji', '')
+
+    rid = add_member_to_area(current_app.areas, token, name, emoji, rid)
     session['room'] = rid
     return render_template('chat.html', name=name, room=rid)

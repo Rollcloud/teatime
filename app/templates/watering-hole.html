@@ -44,6 +44,10 @@
         min-height: inherit;
       }
 
+      .user-avatar {
+        font-family: Ubuntu;
+      }
+
       #bg-filter {
         background-color: rgba(0, 0, 0, 0.3);
         width: 100%;
@@ -108,8 +112,17 @@
           <!-- Add spacer, to align navigation to the right -->
           <div class="mdl-layout-spacer"></div>
           <nav class="mdl-navigation">
+
+            <div class="mdl-navigation__link">
+              <span class="chip mdl-chip mdl-chip--contact">
+                <span class="mdl-chip__contact user-avatar">{{ avatar }}</span>
+                <span class="mdl-chip__text user-name">{{ name }}</span>
+              </span>
+            </div>
+
             <a class="mdl-navigation__link" href="">FAQ</a>
             <a class="mdl-navigation__link" href="">About</a>
+
           </nav>
         </div>
       </header>
@@ -150,11 +163,13 @@
                 <div class="area-card mdl-card mdl-shadow--2dp">
                   <div class="mdl-card__supporting-text">
                     {% for member in room.members.values() %}
+
                     <!-- Contact Chip -->
-                    <span class="mdl-chip mdl-chip--contact">
-                      <span class="mdl-chip__contact material-icons-round">person</span>
-                      <span class="mdl-chip__text">{{ member.name }}</span>
+                    <span class="chip mdl-chip mdl-chip--contact">
+                      <span class="mdl-chip__contact user-avatar">{{ member.emoji }}</span>
+                      <span class="mdl-chip__text user-name">{{ member.name }}</span>
                     </span>
+
                     {% endfor %}
                   </div>
                   <div class="mdl-card__actions mdl-card--border">
