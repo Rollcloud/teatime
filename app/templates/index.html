@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>ChatTime</title>
+        <title>The Watering Hole</title>
         <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
         <style type="text/css">
             body {
@@ -32,7 +32,7 @@
         </script>
     </head>
     <body>
-        <h1>ChatTime</h1>
+        <h1>The Watering Hole</h1>
         <form method="POST">
             {{ form.hidden_tag() }}
             {{ form.name.label }}: {{ form.name() }}{{ form.emoji(readonly=true) }}<br>
