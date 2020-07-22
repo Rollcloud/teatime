@@ -1,0 +1,190 @@
+<html>
+  <head>
+    <title>The Watering Hole</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+    <!-- Material Design Lite -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en"
+      rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style type="text/css">
+      body {
+        /* https://uigradients.com/#Earthly */
+        background: #649173;
+        /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+        background: linear-gradient(to right, #DBD5A4, #649173);
+        background: url("{{ url_for('static', filename='watering-hole.png') }}") no-repeat center center fixed;
+        background-size: cover;
+      }
+
+      .mdl-cell {
+        padding: 0.5rem;
+      }
+
+      .center {
+        text-align: center;
+      }
+
+      .background-dark {
+        background: #000a;
+        color: white;
+      }
+
+      .area-card.mdl-card {
+        width: unset;
+        min-height: unset;
+      }
+
+      .member {
+        padding: 0;
+        min-height: inherit;
+      }
+
+      #bg-filter {
+        background-color: rgba(0, 0, 0, 0.3);
+        width: 100%;
+        height: 100%;
+        position: absolute;
+      }
+
+      #chat {
+        width: 100%;
+        height: 20em;
+        padding: 0.5em;
+        overflow-y: scroll;
+        overflow-wrap: break-word;
+      }
+    </style>
+
+    <!-- Websockets -->
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+    <script type="text/javascript" charset="utf-8">
+      var socket;
+      $(document).ready(function() {
+        socket = io.connect('http://' + document.domain + ':' +
+          location.port + '/chat');
+        socket.on('connect', function() {
+          socket.emit('joined_open', {});
+        });
+        socket.on('status', function(data) {
+          write('<em>' + data.msg + '</em>');
+        });
+        socket.on('message', function(data) {
+          write(data.msg);
+        });
+      });
+
+      function write(text) {
+        $('#chat').html($('#chat').html() + text + '<br>');
+        $('#chat').scrollTop($('#chat')[0].scrollHeight);
+      }
+
+      function leave_open() {
+        socket.emit('left_open', {}, function() {
+          socket.disconnect({ 'loudly': false });
+
+          // go back to the login page
+          window.location.href = "{{ url_for('main.index') }}";
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div id=bg-filter></div>
+    <!-- Always shows a header, even in smaller screens. -->
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--no-drawer-button">
+      <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+          <!-- Title -->
+          <span class="mdl-layout-title">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="logo">
+            <span class="title">The Watering Hole</span>
+          </span>
+          <!-- Add spacer, to align navigation to the right -->
+          <div class="mdl-layout-spacer"></div>
+          <nav class="mdl-navigation">
+            <a class="mdl-navigation__link" href="">FAQ</a>
+            <a class="mdl-navigation__link" href="">About</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="mdl-layout__content">
+        <div class="page-content">
+
+          <div class="mdl-grid">
+            <div class="mdl-cell mdl-cell--4-col-tablet mdl-cell--5-col mdl-cell--top">
+
+              <div id="chat" class="background-dark"></div>
+
+            </div>
+            <div class="background-dark center mdl-cell mdl-cell--1-offset-tablet mdl-cell--3-offset-desktop mdl-cell--3-col-tablet mdl-cell--3-col">
+
+              <p>Welcome <strong>{{ name }}</strong>.</p>
+
+              <p>
+                <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                  id="join" onclick="location.href='{{ url_for("main.chat_new") }}'"
+                  type="button"> Join?
+                </button>
+                <span class="mdl-tooltip mdl-tooltip--large" for="join">
+                  Start a conversation?
+                </span>
+
+                <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                  id="leave" onclick="leave_open();">
+                  Leave?
+                </button>
+                <span class="mdl-tooltip mdl-tooltip--large" for="leave">
+                  Time to go?
+                </span>
+              </p>
+
+              {% for room in areas %}
+              <p>
+                <div class="area-card mdl-card mdl-shadow--2dp">
+                  <div class="mdl-card__supporting-text">
+                    {% for member in room.members.values() %}
+                    <!-- Contact Chip -->
+                    <span class="mdl-chip mdl-chip--contact">
+                      <span class="mdl-chip__contact material-icons-round">person</span>
+                      <span class="mdl-chip__text">{{ member.name }}</span>
+                    </span>
+                    {% endfor %}
+                  </div>
+                  <div class="mdl-card__actions mdl-card--border">
+                    <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect"
+                      href="{{ url_for('main.chat', rid=room.rid) }}">
+                      Enter Room
+                    </a>
+                  </div>
+                </div>
+              </p>
+              {% endfor %}
+
+              <!-- Colored mini FAB button -->
+              <!--
+                  <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored mdl-js-ripple-effect"
+                    id="start-chat" onclick="location.href='{{ url_for("main.chat_new") }}'"
+                    type="button">
+                    <i class="material-icons-round">add_comment</i>
+                  </button>
+                  <span class="mdl-tooltip mdl-tooltip--large" for="start-chat">
+                    Start Conversation
+                  </span>
+              -->
+
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+
+  </body>
+</html>

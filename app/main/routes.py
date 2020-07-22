@@ -18,6 +18,26 @@ def index():
     return render_template('index.html', form=form)
 
 
+@main.route('/watering-hole')
+def watering_hole():
+    """The Watering Hole - the central meeting place.
+    The user's name must be stored in the session."""
+    token = session.get('token')
+    name = session.get('name', '')
+    if name == '':
+        return redirect(url_for('.index'))
+
+    _OPEN = 'open'
+    # if open area does not yet exist, create it
+    if _OPEN not in current_app.areas:
+        current_app.areas[_OPEN] = Area(rid=_OPEN)
+    session['room'] = add_member_to_area(current_app.areas, token, name, _OPEN)
+
+    # trim areas list of empty rooms
+    rooms = [area for area in list(current_app.areas.values())]
+    return render_template('village-green.html', name=name, areas=rooms)
+
+
 @main.route('/open')
 def open():
     """All rooms. The user's name must be stored in the session."""

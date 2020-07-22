@@ -26,8 +26,8 @@ def joined_open(message):
     print(f"⭐ {token[:6]}({name}) joined {rid}")
     join_room(rid)
     actors.add_member_to_area(current_app.areas, token, name, rid)
-    if 'loudly' not in message or message['loudly']:
-        emit('status', {'msg': name + ' has entered the open area.'}, room=rid)
+    # if 'loudly' not in message or message['loudly']:
+    #     emit('status', {'msg': name + ' has entered the open area.'}, room=rid)
 
 
 @socketio.on('joined', namespace='/chat')
@@ -82,11 +82,11 @@ def left_open(message):
     rid = 'open'
     leave_room(rid)
     remove_member_from_area(token, rid)
-    emit('status', {'msg': name + ' has left the open area.'}, room=rid)
+    # emit('status', {'msg': name + ' has left the open area.'}, room=rid)
 
 
 @socketio.on("disconnect", namespace="/chat")
-def disconnect(message={}):
+def disconnect(message):
     token = session.get('token')
     name = session.get('name')
     print(f"⭐ {token[:6]}({name}) disconnecting")
