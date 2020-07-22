@@ -9,14 +9,36 @@
                 background: -webkit-linear-gradient(to left, #ff5e62, #ff9966);  /* Chrome 10-25, Safari 5.1-6 */
                 background: linear-gradient(to left, #ff5e62, #ff9966); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
             }
+
+            #emoji {
+                width: 2.5em; text-align: center;
+                cursor: pointer;
+            }
         </style>
+        <script src="{{url_for('static', filename='js/emoji-button-3.1.1.min.js')}}"></script>
+        <script type="text/javascript">
+            document.addEventListener("DOMContentLoaded", function() {
+                const button = document.querySelector('#emoji');
+                const picker = new EmojiButton();
+
+                picker.on('emoji', emoji => {
+                    document.querySelector('#emoji').value = emoji;
+                });
+
+                button.addEventListener('click', () => {
+                    picker.togglePicker(button);
+                });
+            });
+        </script>
     </head>
     <body>
         <h1>ChatTime</h1>
         <form method="POST">
             {{ form.hidden_tag() }}
-            {{ form.name.label }}: {{ form.name() }} {% for error in form.name.errors %}{{ error }}{% endfor %}<br>
+            {{ form.name.label }}: {{ form.name() }}{{ form.emoji(readonly=true) }}<br>
+            {% for error in form.name.errors %}{{ error }}{% endfor %}
             {{ form.submit() }}
         </form>
+
     </body>
 </html>

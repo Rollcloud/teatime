@@ -7,4 +7,5 @@ class LoginForm(FlaskForm):
     """Accepts a nickname."""
 
     name = StringField('Name', validators=[Required()])
+    emoji = StringField('Emoji', default="👤")
     submit = SubmitField('Enter Open Area')
