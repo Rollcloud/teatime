@@ -4,18 +4,28 @@ from .actors import Area, add_member_to_area
 from .forms import LoginForm
 
 
-@main.route('/', methods=['GET', 'POST'])
+@main.route('/')
 def index():
+    """Send the user to login if required"""
+    name = session.get('name', '')
+    if name == '':
+        return redirect(url_for('.login'))
+    else:
+        return redirect(url_for('.watering_hole'))
+
+
+@main.route('/login', methods=['GET', 'POST'])
+def login():
     """Login form to enter the user's name."""
     form = LoginForm()
     if form.validate_on_submit():
         session['token'] = "T" + session.get('csrf_token')
         session['name'] = form.name.data
-        return redirect(url_for('.open'))
+        return redirect(url_for('.watering_hole'))
     elif request.method == 'GET':
         form.name.data = session.get('name', '')
 
-    return render_template('index.html', form=form)
+    return render_template('login.html', form=form)
 
 
 @main.route('/watering-hole')
@@ -25,7 +35,7 @@ def watering_hole():
     token = session.get('token')
     name = session.get('name', '')
     if name == '':
-        return redirect(url_for('.index'))
+        return redirect(url_for('.login'))
 
     _OPEN = 'open'
     # if open area does not yet exist, create it
@@ -44,7 +54,7 @@ def open():
     token = session.get('token')
     name = session.get('name', '')
     if name == '':
-        return redirect(url_for('.index'))
+        return redirect(url_for('.login'))
 
     _OPEN = 'open'
     # if open area does not yet exist, create it
@@ -69,7 +79,7 @@ def chat(rid):
     token = session.get('token')
     name = session.get('name', '')
     if name == '':
-        return redirect(url_for('.index'))
+        return redirect(url_for('.login'))
 
     rid = add_member_to_area(current_app.areas, token, name, rid)
     session['room'] = rid
