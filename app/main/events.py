@@ -2,19 +2,7 @@ from flask import current_app, request, session
 from flask_socketio import emit, join_room, leave_room, rooms
 from .. import socketio
 
-from . import actors
-
-
-def remove_member_from_area(token, rid):
-    print(f"⭐ Removing {token[:6]}({session.get('name')}) from {rid}")
-    areas = current_app.areas
-    try:
-        areas[rid].remove_member(token)
-    except KeyError:
-        print(f"💥 Warning: room '{rid}' does not exist")
-        return
-    if len(areas[rid].members) <= 0:
-        areas.pop(rid, None)
+from . import actors, areas
 
 
 @socketio.on('joined_open', namespace='/chat')
@@ -24,9 +12,12 @@ def joined_open(message):
     name = session.get('name')
     emoji = session.get('emoji')
     rid = 'open'
-    print(f"⭐ {token[:6]}({name}) joined {rid}")
+
+    member = actors.Member(token, name, emoji)
+
     join_room(rid)
-    actors.add_member_to_area(current_app.areas, token, name, emoji, rid)
+    areas.add_member_to_area(member, rid)
+    print(f"⭐ {member} joined {rid}")
     # if 'loudly' not in message or message['loudly']:
     #     emit('status', {'msg': name + ' has entered the open area.'}, room=rid)
 
@@ -39,10 +30,13 @@ def joined(message):
     name = session.get('name')
     emoji = session.get('emoji')
     rid = session.get('room')
-    print(f"⭐ {token[:6]}({name}) joined {rid}")
+
+    member = actors.Member(token, name, emoji)
+
     join_room(rid)
-    actors.add_member_to_area(current_app.areas, token, name, emoji, rid)
-    emit('status', {'msg': f"{name} has entered the room '{rid[:6]}'."}, room=rid)
+    areas.add_member_to_area(member, rid)
+    print(f"⭐ {member} joined {rid}")
+    # emit('status', {'msg': f"{name} has entered the room '{rid[:6]}'."}, room=rid)
 
 
 @socketio.on('text', namespace='/chat')
@@ -52,15 +46,17 @@ def text(message):
     name = session.get('name')
     rid = session.get('room')
     message = message['msg']
+
+    # emit('message', {'msg': name + ':' + message}, room=rid)
+    emit('message', {'msg': name + ':' + message}, room='open')
+
+    # special commands
+
     # rename room
     if message.startswith("name:"):
         new_name = message.split("name:")[1]
-        current_app.areas[rid].name = new_name
-        emit('status', {'msg': f"'{name}' renamed this room to '{new_name}'"}, room=rid)
-
-    else:
-        # emit('message', {'msg': name + ':' + message}, room=rid)
-        emit('message', {'msg': name + ':' + message}, room='open')
+        rename(rid, new_name)
+        emit('status', {'msg': f"{name} renamed this room to '{new_name}'"}, room=rid)
 
 
 @socketio.on('left', namespace='/chat')
@@ -71,8 +67,8 @@ def left(message):
     name = session.get('name')
     rid = session.get('room')
     leave_room(rid)
-    remove_member_from_area(token, rid)
-    emit('status', {'msg': f"{name} has left the room '{rid[:6]}'."}, room=rid)
+    areas.remove_member_from_area(token, rid)
+    # emit('status', {'msg': f"{name} has left the room '{rid[:6]}'."}, room=rid)
 
 
 @socketio.on('left_open', namespace='/chat')
@@ -83,7 +79,7 @@ def left_open(message):
     name = session.get('name')
     rid = 'open'
     leave_room(rid)
-    remove_member_from_area(token, rid)
+    areas.remove_member_from_area(token, rid)
     # emit('status', {'msg': name + ' has left the open area.'}, room=rid)
 
 
@@ -94,7 +90,7 @@ def disconnect(message={}):
     print(f"⭐ {token[:6]}({name}) disconnecting")
     for rid in rooms(namespace="/chat"):
         if rid != request.sid:
-            remove_member_from_area(token, rid)
-            if 'loudly' not in message or message['loudly']:
-                emit('status', {'msg': name + ' has left the room.'}, room=rid)
+            areas.remove_member_from_area(token, rid)
+            # if 'loudly' not in message or message['loudly']:
+            #     emit('status', {'msg': name + ' has left the room.'}, room=rid)
     # emit('status', {'msg': name + ' has disconnected.'})

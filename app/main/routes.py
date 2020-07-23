@@ -1,6 +1,6 @@
-from flask import current_app, session, redirect, url_for, render_template, request
+from flask import redirect, render_template, request, session, url_for
 from . import main
-from .actors import Area, add_member_to_area
+from . import actors, areas
 from .forms import LoginForm
 
 
@@ -19,7 +19,7 @@ def login():
     """Login form to enter the user's name."""
     form = LoginForm()
     if form.validate_on_submit():
-        session['token'] = "T" + session.get('csrf_token')
+        session['token'] = "T-" + session.get('csrf_token')
         session['name'] = form.name.data
         session['emoji'] = form.emoji.data
         return redirect(url_for('.watering_hole'))
@@ -36,41 +36,17 @@ def watering_hole():
     The user's name must be stored in the session."""
     token = session.get('token')
     name = session.get('name', '')
+    emoji = session.get('emoji', '')
     if name == '':
         return redirect(url_for('.login'))
 
-    emoji = session.get('emoji', '')
+    member = actors.Member(token, name, emoji)
+    session['room'] = areas.add_member_to_open_area(member)
 
-    _OPEN = 'open'
-    # if open area does not yet exist, create it
-    if _OPEN not in current_app.areas:
-        current_app.areas[_OPEN] = Area(rid=_OPEN)
-    session['room'] = add_member_to_area(current_app.areas, token, name, emoji, _OPEN)
-
-    # trim areas list of empty rooms
-    rooms = [area for area in list(current_app.areas.values())]
-    return render_template('watering-hole.html', name=name, avatar=emoji, areas=rooms)
-
-
-@main.route('/open')
-def open():
-    """All rooms. The user's name must be stored in the session."""
-    token = session.get('token')
-    name = session.get('name', '')
-    if name == '':
-        return redirect(url_for('.login'))
-
-    emoji = session.get('emoji', '')
-
-    _OPEN = 'open'
-    # if open area does not yet exist, create it
-    if _OPEN not in current_app.areas:
-        current_app.areas[_OPEN] = Area(rid=_OPEN)
-    session['room'] = add_member_to_area(current_app.areas, token, name, emoji, _OPEN)
-
-    # trim areas list of empty rooms
-    rooms = [area for area in list(current_app.areas.values())]
-    return render_template('open.html', name=name, areas=rooms)
+    live_areas = areas.list_areas()
+    return render_template(
+        'watering-hole.html', name=name, avatar=emoji, areas=live_areas
+    )
 
 
 @main.route('/chat/new')
@@ -82,13 +58,14 @@ def chat_new():
 @main.route('/chat/<rid>')
 def chat(rid):
     """Chat room. The user's name must be stored in the session."""
+
     token = session.get('token')
     name = session.get('name', '')
+    emoji = session.get('emoji', '')
     if name == '':
         return redirect(url_for('.login'))
 
-    emoji = session.get('emoji', '')
-
-    rid = add_member_to_area(current_app.areas, token, name, emoji, rid)
+    member = actors.Member(token, name, emoji)
+    rid = areas.add_member_to_area(member, rid)
     session['room'] = rid
     return render_template('chat.html', name=name, room=rid)

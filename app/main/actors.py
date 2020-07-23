@@ -8,11 +8,14 @@ class Member:
         self.name = name
         self.emoji = emoji
 
+    def __str__(self):
+        return f"{self.token[:6]}({self.emoji} {self.name})"
+
 
 class Area:
     def __init__(self, rid=None):
         """Create a new room."""
-        self.rid = rid if rid else "R" + str(uuid.uuid4())  # unique room-id
+        self.rid = rid if rid else "R-" + str(uuid.uuid4())  # unique room-id
         self.name = self.rid[:8]
         self.members = {}
 
@@ -21,17 +24,3 @@ class Area:
 
     def remove_member(self, token):
         self.members.pop(token, None)
-
-
-def add_member_to_area(areas, token, member_name, member_emoji, rid):
-    print(f"⭐ Adding {token[:6]}({member_name}) to {rid}")
-    member = Member(token, member_name, member_emoji)
-    try:
-        areas[rid].add_member(member)
-        return rid
-    except KeyError:
-        # if area does not yet exist, create it
-        area = Area()
-        areas[area.rid] = area
-        areas[area.rid].add_member(member)
-        return area.rid
