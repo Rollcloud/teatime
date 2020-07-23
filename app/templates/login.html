@@ -58,12 +58,6 @@
       #group_name {
         max-width: calc(100% - 5em);
       }
-
-      #emoji-button {
-        cursor: pointer;
-        padding: 0;
-        width: 2em;
-      }
     </style>
 
     <script src="{{url_for('static', filename='js/emoji-button-3.1.1.min.js')}}"></script>
@@ -128,9 +122,17 @@
                   {{ form.name(class_="mdl-textfield__input") }}
                   {{ form.name.label(class_="mdl-textfield__label") }}
                 </div>
-                <button id="emoji-button" class="user-avatar" type="button">{{
-                  form.emoji.data }}</button>
+
+                <button id="emoji-button" class="user-avatar mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"
+                  type="button">
+                  {{ form.emoji.data }}
+                </button>
+                <span class="mdl-tooltip mdl-tooltip--large" for="start-chat">
+                  Choose avatar
+                </span>
+
                 {{ form.emoji() }}
+
                 {% for error in form.name.errors %}{{ error }}{% endfor %}
 
                 <br>
