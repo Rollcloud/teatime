@@ -1,8 +1,8 @@
 from flask import current_app, request, session
 from flask_socketio import emit, join_room, leave_room, rooms
-from .. import socketio
+from .. import executor, socketio
 
-from . import actors, areas
+from . import actors, areas, bots
 
 
 @socketio.on('joined_open', namespace='/chat')
@@ -57,6 +57,18 @@ def text(message):
         new_name = message.split("name:")[1]
         rename(rid, new_name)
         emit('status', {'msg': f"{name} renamed this room to '{new_name}'"}, room=rid)
+
+    # create bot
+    elif message == "bot+":
+        bot = bots.Bot()
+        executor.submit(bots.run_bot, bot)
+        emit('status', {'msg': f"{name} created bot {bot}"}, room=rid)
+
+    # kill bot
+    elif message.startswith("bot-"):
+        bid = message.split('bot-')[1]
+        # terminate bot
+        emit('status', {'msg': f"{name} killed bot {bid}"}, room=rid)
 
 
 @socketio.on('left', namespace='/chat')

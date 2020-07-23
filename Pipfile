@@ -10,6 +10,7 @@ eventlet= "*"
 flask-socketio= "*"
 flask-wtf= "*"
 Flask= "*"
+flask-executor = "*"
 
 [requires]
 python_version = "3.6"
