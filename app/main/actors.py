@@ -2,14 +2,21 @@ import uuid
 
 
 class Member:
-    def __init__(self, token, name, emoji):
+    def __init__(self, token, name, avatar):
         """Create a new member. Members can join rooms."""
         self.token = token
         self.name = name
-        self.emoji = emoji
+        self.avatar = avatar
+        self.emoji = avatar
 
     def __str__(self):
         return f"{self.token[:6]}({self.emoji} {self.name})"
+
+    def __getattr__(self, key):
+        if key == 'handle':
+            return f"{self.emoji} {self.name}"
+        else:
+            raise AttributeError
 
 
 class Area:

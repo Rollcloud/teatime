@@ -36,16 +36,16 @@ def watering_hole():
     The user's name must be stored in the session."""
     token = session.get('token')
     name = session.get('name', '')
-    emoji = session.get('emoji', '')
+    avatar = session.get('emoji', '')
     if name == '':
         return redirect(url_for('.login'))
 
-    member = actors.Member(token, name, emoji)
+    member = actors.Member(token, name, avatar)
     session['room'] = areas.add_member_to_open_area(member)
 
     live_areas = areas.list_areas()
     return render_template(
-        'watering-hole.html', name=name, avatar=emoji, areas=live_areas
+        'watering-hole.html', name=name, avatar=avatar, areas=live_areas
     )
 
 

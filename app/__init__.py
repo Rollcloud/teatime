@@ -18,6 +18,7 @@ def create_app(debug=False):
 
     with app.app_context():
         current_app.areas = {}
+        current_app.people = {}
 
     from .main import main as main_blueprint
 

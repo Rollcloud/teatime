@@ -4,7 +4,6 @@ from . import actors
 
 
 def add_member_to_area(member, rid):
-    print(f"⭐ Adding {member} to {rid}")
     areas = current_app.areas
     try:
         areas[rid].add_member(member)
@@ -27,15 +26,17 @@ def add_member_to_open_area(member):
 
 
 def remove_member_from_area(token, rid):
-    print(f"⭐ Removing {token[:6]} from {rid}")
     areas = current_app.areas
     try:
         areas[rid].remove_member(token)
     except KeyError:
         print(f"💥 Warning: room '{rid}' does not exist")
-        return
-    if len(areas[rid].members) <= 0:
-        areas.pop(rid, None)
+
+    try:
+        if len(areas[rid].members) <= 0:
+            areas.pop(rid, None)
+    except KeyError:
+        pass
 
 
 def rename(rid, new_name):

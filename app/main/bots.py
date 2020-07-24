@@ -41,10 +41,10 @@ class Bot(actors.Member):
         self.rid = rid
 
         # self.rid =
-        areas.add_member_to_area(areas, self, rid)
+        areas.add_member_to_area(self, rid)
 
     def speak(self, words):
-        print(f"{self}: I speak \"{words}\" to '{self.rid}'")
+        print(f"{self}: speaking to '{self.rid}'")
         emit('message', {'msg': self.name + ':' + words}, room=self.rid)
 
     def quote(self):
