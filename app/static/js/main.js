@@ -78,8 +78,13 @@ $(document).ready(function() {
       removeUser(user.token);
 
     addUser(user);
-    if (user.token == myToken)
+    if (user.token == myToken) {
       world.moveCamera(user);
+      // remove loading screen
+      // document.querySelector('.loadscreen .mdl-spinner').classList.remove('is-active');
+      document.querySelector('.loadscreen').classList.add('success');
+    }
+
   });
 
   socket.on('user_left', function(data) {

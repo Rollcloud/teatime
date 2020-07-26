@@ -8,6 +8,7 @@
 }
 
 .world-camera {
+    position: absolute;
 }
 
 .world-map {
