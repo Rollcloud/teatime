@@ -81,7 +81,7 @@ def move(delta):
     response = {'token': token, 'pos_x': user.pos_x, 'pos_y': user.pos_y}
 
     # forward message to all connected clients
-    emit('move', response, broadcast=True)
+    emit('move', response, broadcast=True, include_self=False)
 
 
 @socketio.on("disconnect", namespace="/chat")

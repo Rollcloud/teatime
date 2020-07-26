@@ -29,12 +29,22 @@ world.removeCharacter = function(token) {
   world.characters[token] = undefined;
 };
 
-world.commandMove = function(delta) {
+world.checkMove = function(delta) {
   character = world.characters[delta.token]
   pos_x = character.pos_x + delta.x;
   pos_y = character.pos_y + delta.y;
 
   return !world.collides(pos_x, pos_y);
+};
+
+world.getCharacterData = function(delta) {
+  let data = {
+    'token': myToken,
+    'pos_x': character.pos_x + delta.x,
+    'pos_y': character.pos_y + delta.y
+  };
+
+  return data;
 };
 
 world.moveCharacter = function(data) {
@@ -71,13 +81,25 @@ world.updateCamera = function() {
   let camera = world.camera;
   let cameraElement = document.querySelector('.world-camera');
 
+  // calculate square size
+  square_x = world.map.pixels.x / world.map.grid.x;
+  square_y = world.map.pixels.y / world.map.grid.y;
+
   // calculate mid-point
   half_width = camera.width / 2;
   half_height = camera.height / 2;
 
+  // calculate center map position
+  map_left = camera.x + half_width;
+  map_top = camera.y + half_height;
+
+  // prevent over-scrolling of map edges
+  map_left = Math.min(0, Math.max(map_left, -world.map.pixels.x + camera.width));
+  map_top = Math.min(0, Math.max(map_top, -world.map.pixels.y + camera.height));
+
   // position camera in DOM
-  cameraElement.style.left = camera.x + half_width + 'px';
-  cameraElement.style.top = camera.y + half_height + 'px';
+  cameraElement.style.left = map_left + 'px';
+  cameraElement.style.top = map_top + 'px';
 };
 
 world.collides = function(x, y) {
@@ -116,13 +138,6 @@ world.createWorld = function(worldElement, mapName) {
       }
     });
   }
-
-  // create camera
-  world.camera = {
-    'width': document.documentElement.clientWidth,
-    'height': document.documentElement.clientHeight
-  }
-
   // create DOM
   let worldContainer = document.querySelector(worldElement);
 
@@ -143,19 +158,23 @@ world.createWorld = function(worldElement, mapName) {
   worldMap.style.width = map.pixels.x + 'px';
   worldMap.style.height = map.pixels.y + 'px';
 
+  // create camera
+  world.camera = new Object();
+  world.camera.x = 0;
+  world.camera.y = 0;
+  world.camera.width = worldContainer.getBoundingClientRect().width;
+  world.camera.height = worldContainer.getBoundingClientRect().height;
+
   // detect window szie changes and update camera
   window.addEventListener('resize', function() {
     let camera = world.camera;
 
-    camera = {
-      'width': document.documentElement.clientWidth,
-      'height': document.documentElement.clientHeight
-    }
+    camera.width = worldContainer.getBoundingClientRect().width;
+    camera.height = worldContainer.getBoundingClientRect().height;
 
     world.updateCamera();
   });
 
   // finally, draw world
   world.updateCamera();
-
 }

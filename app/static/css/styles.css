@@ -28,7 +28,7 @@
 }
 
 .chat-bar {
-  height: 100%;
+  height: calc(100vh - 64px);
   float: right;
 }
 

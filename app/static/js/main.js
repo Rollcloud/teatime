@@ -55,8 +55,13 @@ function sendMovement(vertical, horizontal) {
     'x': horizontal,
     'y': vertical
   };
-  if (world.commandMove(delta))
+  if (world.checkMove(delta)) {
+    let data = world.getCharacterData(delta);
+    world.moveCharacter(data);
+    world.moveCamera(data);
+
     socket.emit('move', delta);
+  }
 }
 
 $(document).ready(function() {
@@ -73,6 +78,8 @@ $(document).ready(function() {
       removeUser(user.token);
 
     addUser(user);
+    if (user.token == myToken)
+      world.moveCamera(user);
   });
 
   socket.on('user_left', function(data) {
