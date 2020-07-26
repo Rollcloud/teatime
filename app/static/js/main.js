@@ -43,6 +43,14 @@ function writeToChat(text) {
   $('.chat-box').scrollTop($('.chat-box')[0].scrollHeight);
 }
 
+function moveCharacter(vertical, horizontal) {
+  socket.emit('move', {
+    'token': myToken,
+    'vertical': vertical,
+    'horizontal': horizontal
+  });
+}
+
 $(document).ready(function() {
   socket = io.connect('http://' + document.domain + ':' +
     location.port + '/chat');
@@ -72,8 +80,32 @@ $(document).ready(function() {
     myToken = data.token;
   });
 
+  socket.on('move', function(data) {
+    let character = document.getElementById(data.token);
+    character.style.left = 30 * data.pos_x + 'px';
+    character.style.top = 30 * data.pos_y + 'px';
+  });
+
   socket.on('message', function(data) {
     writeToChat(data.msg);
+  });
+
+  document.addEventListener('keydown', event => {
+    const key = event.key; // "ArrowRight", "ArrowLeft", "ArrowUp", or "ArrowDown"
+    switch (key) {
+      case "ArrowLeft":
+        moveCharacter(0, -1);
+        break;
+      case "ArrowRight":
+        moveCharacter(0, 1);
+        break;
+      case "ArrowUp":
+        moveCharacter(-1, 0);
+        break;
+      case "ArrowDown":
+        moveCharacter(1, 0);
+        break;
+    }
   });
 
   document.querySelector('#chat-input').addEventListener('keyup', event => {

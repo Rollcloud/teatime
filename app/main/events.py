@@ -69,6 +69,21 @@ def text(message):
             print(f"💥 Warning: {err}")
 
 
+@socketio.on('move', namespace='/chat')
+def move(data):
+    """Sent by a client character is moved.
+    The message is sent to all people in the room."""
+    token = data['token']
+    user = agents.get_user(token)
+    user.pos_y += data['vertical']
+    user.pos_x += data['horizontal']
+
+    response = {'token': token, 'pos_x': user.pos_x, 'pos_y': user.pos_y}
+
+    # forward message to all connected clients
+    emit('move', response, broadcast=True)
+
+
 @socketio.on("disconnect", namespace="/chat")
 def disconnect():
     token = session.get('token')
