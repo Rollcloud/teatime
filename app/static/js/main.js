@@ -56,7 +56,7 @@ $(document).ready(function() {
     location.port + '/chat');
 
   socket.on('user_joined', function(data) {
-    let user = data['user'];
+    let user = data.user;
 
     if (model.users.includes(user.token))
       removeUser(user.token);
@@ -65,7 +65,7 @@ $(document).ready(function() {
   });
 
   socket.on('user_left', function(data) {
-    let user = data['user'];
+    let user = data.user;
     removeUser(user.token);
   });
 

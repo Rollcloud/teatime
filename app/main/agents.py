@@ -42,9 +42,7 @@ class User:
 
 def add_user(user):
     users = current_app.users
-
-    if user.token not in users:
-        users[user.token] = user
+    users[user.token] = user
 
 
 def remove_user(token):
