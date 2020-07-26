@@ -1,54 +1,42 @@
-from flask import current_app, request, session
+from flask import request, session, url_for
 from flask_socketio import emit, join_room, leave_room, rooms
-from .. import socketio
 
-from . import actors, areas, people
+from .. import socketio
+from . import agents
+from . import bots
 
 
 @socketio.on("connect", namespace="/chat")
-def connect(message={}):
-    token = session.get('token')
+def connect():
+    token = session.get('token', '')
     name = session.get('name')
-    emoji = session.get('emoji')
+    avatar = session.get('emoji')
 
-    member = actors.Member(token, name, emoji)
-    people.add_member_to_people(member)
+    if token == '':
+        raise ConnectionRefusedError(f"Please login at: {url_for('.login')}")
 
-    print(f"⭐ {member} connected")
+    try:
+        existing_user = agents.get_user(token)
+        # keep pos_x and pos_y, replace all other attributes
+        pos_x = existing_user.pos_x
+        pos_y = existing_user.pos_y
+    except KeyError as err:
+        pos_x = None
+        pos_y = None
 
+    user = agents.User(token, name, avatar, pos_x=pos_x, pos_y=pos_y)
+    print(f"⭐ - {user} connected")
 
-@socketio.on('joined_open', namespace='/chat')
-def joined_open(message):
-    """Sent by clients when they begin open conversations."""
-    token = session.get('token')
-    name = session.get('name')
-    emoji = session.get('emoji')
-    rid = 'open'
+    # forward new user message to all connected clients
+    emit('user_joined', {'user': user.asdict()}, broadcast=True, include_self=False)
 
-    member = actors.Member(token, name, emoji)
+    agents.add_user(user)
 
-    join_room(rid)
-    areas.add_member_to_area(member, rid)
-    print(f"✳️  {member} joined {rid}")
-    # if 'loudly' not in message or message['loudly']:
-    #     emit('status', {'msg': name + ' has entered the open area.'}, room=rid)
-
-
-@socketio.on('joined', namespace='/chat')
-def joined(message):
-    """Sent by clients when they enter a room.
-    A status message is broadcast to all people in the room."""
-    token = session.get('token')
-    name = session.get('name')
-    emoji = session.get('emoji')
-    rid = session.get('room')
-
-    member = actors.Member(token, name, emoji)
-
-    join_room(rid)
-    areas.add_member_to_area(member, rid)
-    print(f"✳️  {member} joined {rid}")
-    # emit('status', {'msg': f"{name} has entered the room '{rid[:6]}'."}, room=rid)
+    # send own token to this connector
+    emit('identify', {'token': user.token})
+    # send all currently connected users to this connector
+    for user in agents.get_users():
+        emit('user_joined', {'user': user.asdict()})
 
 
 @socketio.on('text', namespace='/chat')
@@ -56,76 +44,37 @@ def text(message):
     """Sent by a client when the user entered a new message.
     The message is sent to all people in the room."""
     token = session.get('token')
-    rid = session.get('room')
+    user = agents.get_user(token)
     message = message['msg']
-    member = current_app.people[token]
 
-    # emit('message', {'msg': name + ':' + message}, room=rid)
-    emit('message', {'msg': member.handle + ': ' + message}, room='open')
+    # forward message to all connected clients
+    emit(
+        'message', {'msg': f"{user.handle}: {message}"}, broadcast=True
+    )  # , room='optional'
 
     # special commands
 
-    # rename room
-    if message.startswith("name:"):
-        new_name = message.split("name:")[1]
-        rename(rid, new_name)
-        emit(
-            'status',
-            {'msg': f"{member.handle} renamed this room to '{new_name}'"},
-            room=rid,
-        )
-
     # create bot
-    elif message == "bot+":
-        bot = people.create_bot()
-        emit('status', {'msg': f"{member.handle} created bot {bot}"}, room=rid)
+    if message == "bot+":
+        bot = bots.create_bot()
+        emit('status', {'msg': f"{user.handle} created bot {bot}"}, broadcast=True)
 
     # kill bot
     elif message.startswith("bot-"):
-        token = message.split('bot-')[1]
+        token_hint = message.split('bot-')[1]
         try:
-            people.destroy_bot(token)
-            emit('status', {'msg': f"{member.handle} killed bot {token}"}, room=rid)
+            bots.destroy_bot(token_hint)
+            emit('status', {'msg': f"{user.handle} killed bot {token}"}, broadcast=True)
         except KeyError as err:
             print(f"💥 Warning: {err}")
 
 
-@socketio.on('left', namespace='/chat')
-def left(message):
-    """Sent by clients when they leave a room.
-    A status message is broadcast to all people in the room."""
-    people = current_app.people
-    token = session.get('token')
-    rid = session.get('room')
-    leave_room(rid)
-    member = people[token]
-    areas.remove_member_from_area(token, rid)
-    # emit('status', {'msg': f"{name} has left the room '{rid[:6]}'."}, room=rid)
-    print(f"❎ {member} left {rid}")
-
-
-@socketio.on('left_open', namespace='/chat')
-def left_open(message):
-    """Sent by clients when they leave open conversation.
-    A status message is broadcast to all people in the open area."""
-    people = current_app.people
-    token = session.get('token')
-    rid = 'open'
-    leave_room(rid)
-    member = people[token]
-    areas.remove_member_from_area(token, rid)
-    # emit('status', {'msg': name + ' has left the open area.'}, room=rid)
-    print(f"❎ {member} left {rid}")
-
-
 @socketio.on("disconnect", namespace="/chat")
-def disconnect(message={}):
+def disconnect():
     token = session.get('token')
-    name = session.get('name')
-    print(f"💢 {token[:6]}({name}) disconnecting")
-    for rid in rooms(namespace="/chat"):
-        if rid != request.sid:
-            areas.remove_member_from_area(token, rid)
-            # if 'loudly' not in message or message['loudly']:
-            #     emit('status', {'msg': name + ' has left the room.'}, room=rid)
-    # emit('status', {'msg': name + ' has disconnected.'})
+    user = agents.get_user(token)
+
+    print(f"💢 - {user} disconnecting")
+
+    # forward message to all connected clients
+    emit('user_left', {'user': user.asdict()}, broadcast=True)

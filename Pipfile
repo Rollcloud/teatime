@@ -4,13 +4,14 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pytest = "*"
+pytest-cov = "*"
 
 [packages]
 eventlet= "*"
 flask-socketio= "*"
 flask-wtf= "*"
 Flask= "*"
-flask-executor = "*"
 
 [requires]
 python_version = "3.6"

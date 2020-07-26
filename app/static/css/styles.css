@@ -1,0 +1,53 @@
+/* All */
+
+.mdl-cell {
+  padding: 0.5rem;
+}
+
+.center {
+  text-align: center;
+}
+
+.background-dark {
+  background: #0006;
+  color: white;
+}
+
+.member {
+  padding: 0;
+  min-height: inherit;
+}
+
+.character {
+  position: absolute;
+  /*top: 50%;*/
+  /*left: 50%;*/
+}
+
+.user-avatar {
+  background-color: #dedede;
+  font-family: Ubuntu;
+}
+
+.chat-bar {
+  height: 100%;
+  float: right;
+}
+
+.chat-box {
+  width: 100%;
+  height: calc(100% - 70px);
+  overflow-y: scroll;
+  overflow-wrap: break-word;
+}
+
+.chat-message {
+  width: 100%;
+}
+
+
+/* Login */
+
+#group_name {
+  max-width: calc(100% - 5em);
+}
