@@ -21,10 +21,10 @@ def connect():
         pos_x = existing_user.pos_x
         pos_y = existing_user.pos_y
     except KeyError as err:
-        pos_x = None
-        pos_y = None
+        pos_x = 0
+        pos_y = 0
 
-    user = agents.User(token, name, avatar, pos_x=pos_x, pos_y=pos_y)
+    user = agents.User(token, name, avatar, pos_x, pos_y)
     print(f"⭐ - {user} connected")
 
     # forward new user message to all connected clients
@@ -70,13 +70,13 @@ def text(message):
 
 
 @socketio.on('move', namespace='/chat')
-def move(data):
+def move(delta):
     """Sent by a client character is moved.
     The message is sent to all people in the room."""
-    token = data['token']
+    token = delta['token']
     user = agents.get_user(token)
-    user.pos_y += data['vertical']
-    user.pos_x += data['horizontal']
+    user.pos_y += delta['y']
+    user.pos_x += delta['x']
 
     response = {'token': token, 'pos_x': user.pos_x, 'pos_y': user.pos_y}
 

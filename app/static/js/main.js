@@ -10,6 +10,9 @@ function addUser(user) {
   // add to model
   model.users.push(user.token);
 
+  // add to world
+  world.addCharacter(user);
+
   // create user's character
   let character = stringToHTML(
     `
@@ -21,10 +24,11 @@ function addUser(user) {
     </div>
   `
   );
-  character.style.left = 30 * user.pos_x + 'px';
-  character.style.top = 30 * user.pos_y + 'px';
+  character.style.left = '-100px';
+  character.style.top = '-100px';
 
   document.querySelector('.map-users').append(character);
+  world.moveCharacter(user);
 }
 
 function removeUser(token) {
@@ -33,6 +37,8 @@ function removeUser(token) {
   if (elem != null) {
     elem.parentNode.removeChild(elem);
   }
+  // remove from world
+  world.removeCharacter(token);
 
   // remove from model
   model.users = model.users.filter(e => e !== token)
@@ -43,15 +49,20 @@ function writeToChat(text) {
   $('.chat-box').scrollTop($('.chat-box')[0].scrollHeight);
 }
 
-function moveCharacter(vertical, horizontal) {
-  socket.emit('move', {
+function sendMovement(vertical, horizontal) {
+  delta = {
     'token': myToken,
-    'vertical': vertical,
-    'horizontal': horizontal
-  });
+    'x': horizontal,
+    'y': vertical
+  };
+  if (world.commandMove(delta))
+    socket.emit('move', delta);
 }
 
 $(document).ready(function() {
+  // build map
+  world.createWorld('.map-bg', 'chess-board');
+
   socket = io.connect('http://' + document.domain + ':' +
     location.port + '/chat');
 
@@ -81,9 +92,7 @@ $(document).ready(function() {
   });
 
   socket.on('move', function(data) {
-    let character = document.getElementById(data.token);
-    character.style.left = 30 * data.pos_x + 'px';
-    character.style.top = 30 * data.pos_y + 'px';
+    world.moveCharacter(data);
   });
 
   socket.on('message', function(data) {
@@ -94,16 +103,16 @@ $(document).ready(function() {
     const key = event.key; // "ArrowRight", "ArrowLeft", "ArrowUp", or "ArrowDown"
     switch (key) {
       case "ArrowLeft":
-        moveCharacter(0, -1);
+        sendMovement(0, -1);
         break;
       case "ArrowRight":
-        moveCharacter(0, 1);
+        sendMovement(0, 1);
         break;
       case "ArrowUp":
-        moveCharacter(-1, 0);
+        sendMovement(-1, 0);
         break;
       case "ArrowDown":
-        moveCharacter(1, 0);
+        sendMovement(1, 0);
         break;
     }
   });

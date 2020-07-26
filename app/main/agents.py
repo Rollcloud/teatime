@@ -1,11 +1,6 @@
 import uuid
 
-from random import randrange
-
 from flask import current_app
-
-MAP_WIDTH = 15
-MAP_HEIGHT = 15
 
 
 class AmbiguousTokenException(KeyError):
@@ -13,13 +8,13 @@ class AmbiguousTokenException(KeyError):
 
 
 class User:
-    def __init__(self, token, name, avatar, pos_x=None, pos_y=None):
+    def __init__(self, token, name, avatar, pos_x, pos_y):
         """Create a new user representing a unique client."""
         self.token = token
         self.name = name
         self.avatar = avatar
-        self.pos_x = pos_x if pos_x else randrange(0, MAP_WIDTH)
-        self.pos_y = pos_y if pos_y else randrange(0, MAP_HEIGHT)
+        self.pos_x = pos_x
+        self.pos_y = pos_y
 
     def __str__(self):
         return f"{self.handle}({self.token[:6]})"
