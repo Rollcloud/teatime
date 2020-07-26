@@ -61,7 +61,7 @@ function sendMovement(vertical, horizontal) {
 
 $(document).ready(function() {
   // build map
-  world.createWorld('.map-bg', 'chess-board');
+  world.createWorld('.map-bg', 'observatory-tea');
 
   socket = io.connect('http://' + document.domain + ':' +
     location.port + '/chat');

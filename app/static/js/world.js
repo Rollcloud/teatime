@@ -14,7 +14,8 @@ world.maps = {
   'observatory-tea': {
     'filename': 'observatory-tea.png',
     'pixels': { 'x': 4736, 'y': 1536 },
-    'grid': { 'x': 74, 'y': 24 }
+    'grid': { 'x': 74, 'y': 24 },
+    'json': 'Observatory_Tea.json'
   },
 }
 
@@ -57,6 +58,13 @@ world.collides = function(x, y) {
   if (x < 0 || y < 0) return true;
   if (x >= world.map.grid.x || y >= world.map.grid.y) return true;
 
+  // check for map obsticals
+  square_num = y * world.map.grid.x + x;
+  for (var i = world.map.collisions.length - 1; i >= 0; i--) {
+    if (square_num == world.map.collisions[i])
+      return true;
+  }
+
   // check for collisions with other characters
   for (const [token, character] of Object.entries(world.characters)) {
     if (character.pos_x == x && character.pos_y == y) return true;
@@ -68,6 +76,18 @@ world.collides = function(x, y) {
 world.createWorld = function(mapElement, mapName) {
   map = world.maps[mapName];
   world.map = map;
+
+  // load collisions
+  if (map.hasOwnProperty('json')) {
+    loadJSON('/static/maps/' + map.json, (response) => {
+      // Parse JSON string into object
+      let jsonMap = JSON.parse(response);
+      map.collisions = [];
+      for (var i = jsonMap.collisions.length - 1; i >= 0; i--) {
+        map.collisions.push(jsonMap.collisions[i].split(':')[0]);
+      }
+    });
+  }
 
   // build map
   document.querySelector(mapElement).style.backgroundImage =
