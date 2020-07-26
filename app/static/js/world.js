@@ -53,6 +53,33 @@ world.moveCharacter = function(data) {
   character.style.top = square_y * data.pos_y + 'px';
 };
 
+world.moveCamera = function(data) {
+  let camera = world.camera;
+
+  // calculate square size
+  square_x = world.map.pixels.x / world.map.grid.x;
+  square_y = world.map.pixels.y / world.map.grid.y;
+
+  // update camera in world model
+  world.camera.x = -square_x * data.pos_x;
+  world.camera.y = -square_y * data.pos_y;
+
+  world.updateCamera();
+};
+
+world.updateCamera = function() {
+  let camera = world.camera;
+  let cameraElement = document.querySelector('.world-camera');
+
+  // calculate mid-point
+  half_width = camera.width / 2;
+  half_height = camera.height / 2;
+
+  // position camera in DOM
+  cameraElement.style.left = camera.x + half_width + 'px';
+  cameraElement.style.top = camera.y + half_height + 'px';
+};
+
 world.collides = function(x, y) {
   // check for map borders
   if (x < 0 || y < 0) return true;
@@ -73,7 +100,8 @@ world.collides = function(x, y) {
   return false;
 };
 
-world.createWorld = function(mapElement, mapName) {
+world.createWorld = function(worldElement, mapName) {
+  // load map
   map = world.maps[mapName];
   world.map = map;
 
@@ -89,7 +117,45 @@ world.createWorld = function(mapElement, mapName) {
     });
   }
 
+  // create camera
+  world.camera = {
+    'width': document.documentElement.clientWidth,
+    'height': document.documentElement.clientHeight
+  }
+
+  // create DOM
+  let worldContainer = document.querySelector(worldElement);
+
+  let worldCamera = document.createElement('div');
+  worldCamera.classList.add('world-camera')
+  worldContainer.appendChild(worldCamera);
+
+  let worldMap = document.createElement('div');
+  worldMap.classList.add('world-map')
+  worldCamera.appendChild(worldMap);
+
+  let worldCharacters = document.createElement('div');
+  worldCharacters.classList.add('world-characters')
+  worldCamera.appendChild(worldCharacters);
+
   // build map
-  document.querySelector(mapElement).style.backgroundImage =
-    `url('/static/maps/${map.filename}')`;
+  worldMap.style.backgroundImage = `url('/static/maps/${map.filename}')`;
+  worldMap.style.width = map.pixels.x + 'px';
+  worldMap.style.height = map.pixels.y + 'px';
+
+  // detect window szie changes and update camera
+  window.addEventListener('resize', function() {
+    let camera = world.camera;
+
+    camera = {
+      'width': document.documentElement.clientWidth,
+      'height': document.documentElement.clientHeight
+    }
+
+    world.updateCamera();
+  });
+
+  // finally, draw world
+  world.updateCamera();
+
 }

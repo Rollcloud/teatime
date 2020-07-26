@@ -27,7 +27,7 @@ function addUser(user) {
   character.style.left = '-100px';
   character.style.top = '-100px';
 
-  document.querySelector('.map-users').append(character);
+  document.querySelector('.world-characters').append(character);
   world.moveCharacter(user);
 }
 
@@ -61,7 +61,7 @@ function sendMovement(vertical, horizontal) {
 
 $(document).ready(function() {
   // build map
-  world.createWorld('.map-bg', 'observatory-tea');
+  world.createWorld('.world', 'observatory-tea');
 
   socket = io.connect('http://' + document.domain + ':' +
     location.port + '/chat');
@@ -93,6 +93,8 @@ $(document).ready(function() {
 
   socket.on('move', function(data) {
     world.moveCharacter(data);
+    if (data.token == myToken)
+      world.moveCamera(data);
   });
 
   socket.on('message', function(data) {

@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
   <head>
     <title>The Watering Hole</title>
@@ -39,6 +40,7 @@
     </style>
 
     <!-- Styles -->
+    <link rel="stylesheet" href="{{url_for('static', filename='css/world.css')}}">
     <link rel="stylesheet" href="{{url_for('static', filename='css/styles.css')}}">
 
     <!-- Websockets -->
@@ -67,7 +69,8 @@
 
             <div class="mdl-navigation__link">
               <span class="chip mdl-chip mdl-chip--contact">
-                <span class="mdl-chip__contact mdl-color--indigo-50 user-avatar">{{ avatar }}</span>
+                <span class="mdl-chip__contact mdl-color--indigo-50 user-avatar">{{
+                  avatar }}</span>
                 <span class="mdl-chip__text user-name">{{ name }}</span>
               </span>
             </div>
@@ -83,27 +86,25 @@
       <main class="mdl-layout__content">
         <div class="page-content">
 
-          <!-- the map layer -->
-          <div class="map-bg">
-            <div class="map-users"></div>
-          </div>
+          <!-- the world layer -->
+          <div class="world"></div>
 
           <!-- the user interface -->
           <div class="user-interface">
 
             <!-- <div class="row"> -->
-              <div class="col chat-bar background-dark">
+            <div class="col chat-bar background-dark">
 
-                <!-- Chat box -->
-                <div class="chat-box"></div>
-                <!-- Input field -->
-                <div class="chat-message mdl-textfield mdl-js-textfield  mdl-textfield--floating-label">
-                  <input class="mdl-textfield__input" type="text" id="chat-input">
-                  <label class="mdl-textfield__label mdl-color-text--indigo-100" for="chat-input">Message</label>
-                </div>
-
-
+              <!-- Chat box -->
+              <div class="chat-box"></div>
+              <!-- Input field -->
+              <div class="chat-message mdl-textfield mdl-js-textfield  mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="chat-input">
+                <label class="mdl-textfield__label mdl-color-text--indigo-100" for="chat-input">Message</label>
               </div>
+
+
+            </div>
             <!-- </div> -->
 
           </div>
