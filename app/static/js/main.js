@@ -66,7 +66,7 @@ function sendMovement(vertical, horizontal) {
 
 $(document).ready(function() {
   // build map
-  world.createWorld('.world', 'observatory-tea');
+  world.createWorld('.world', 'forest-glade'); // 'observatory-tea');
 
   socket = io.connect('http://' + document.domain + ':' +
     location.port + '/chat');

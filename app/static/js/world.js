@@ -9,7 +9,7 @@ world.maps = {
   'forest-glade': {
     'filename': 'forest-glade.png',
     'pixels': { 'x': 4200, 'y': 4200 },
-    'grid': { 'x': 10, 'y': 10 }
+    'grid': { 'x': 30, 'y': 30 }
   },
   'observatory-tea': {
     'filename': 'observatory-tea.png',
@@ -108,10 +108,12 @@ world.collides = function(x, y) {
   if (x >= world.map.grid.x || y >= world.map.grid.y) return true;
 
   // check for map obsticals
-  square_num = y * world.map.grid.x + x;
-  for (var i = world.map.collisions.length - 1; i >= 0; i--) {
-    if (square_num == world.map.collisions[i])
-      return true;
+  if (map.hasOwnProperty('json')) {
+    square_num = y * world.map.grid.x + x;
+    for (var i = world.map.collisions.length - 1; i >= 0; i--) {
+      if (square_num == world.map.collisions[i])
+        return true;
+    }
   }
 
   // check for collisions with other characters
