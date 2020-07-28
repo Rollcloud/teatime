@@ -36,13 +36,13 @@
         });
 
         input_name.addEventListener('input', event => {
-          document.querySelector('.chip .user-name').innerText = event.target.value;
+          document.querySelector('.character-name').innerText = event.target.value;
         });
 
         picker.on('emoji', emoji => {
           hidden_emoji.value = emoji;
           emoji_button.innerText = emoji;
-          document.querySelector('.chip .user-avatar').innerText = emoji;
+          document.querySelector('.character-avatar').innerText = emoji;
         });
 
         emoji_button.addEventListener('click', () => {
@@ -87,7 +87,7 @@
                   {{ form.name.label(class_="mdl-textfield__label mdl-color-text--indigo-100") }}
                 </div>
 
-                <button id="emoji-button" class="user-avatar mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"
+                <button id="emoji-button" class="avatar mdl-color--indigo-50 mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"
                   type="button">
                   {{ form.emoji.data }}
                 </button>
@@ -100,11 +100,12 @@
                 {% for error in form.name.errors %}{{ error }}{% endfor %}
 
                 <br>
-                <!-- Example Contact Chip -->
-                <div class="chip mdl-chip mdl-chip--contact">
-                  <span class="mdl-chip__contact mdl-color--indigo-50 user-avatar">{{ form.emoji.data }}</span>
-                  <span class="mdl-chip__text user-name">{{ form.name.data }}</span>
+                <!-- Example Character -->
+                <div class="character" id="${user.token}">
+                    <span class="character-avatar avatar">{{ form.emoji.data }}</span>
+                    <span class="character-name">{{ form.name.data }}</span>
                 </div>
+
                 <br>
                 <br>
                 {{ form.submit(class_="mdl-button mdl-js-button mdl-button--raised

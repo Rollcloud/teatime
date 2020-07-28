@@ -59,8 +59,8 @@ world.moveCharacter = function(data) {
   world.characters[data.token].pos_y = data.pos_y;
 
   // position character in DOM
-  character.style.left = square_x * data.pos_x + 'px';
-  character.style.top = square_y * data.pos_y + 'px';
+  character.style.left = (square_x / 2) + square_x * data.pos_x + 'px';
+  character.style.top = (square_y / 2) + square_y * data.pos_y + 'px';
 };
 
 world.moveCamera = function(data) {

@@ -17,10 +17,8 @@ function addUser(user) {
   let character = stringToHTML(
     `
     <div class="character" id="${user.token}">
-      <span class="mdl-chip mdl-chip--contact">
-        <span class="mdl-chip__contact mdl-color--indigo-50">${user.avatar}</span>
-        <span class="mdl-chip__text">${user.name}</span>
-      </span>
+        <span class="character-avatar">${user.avatar}</span>
+        <span class="character-name">${user.name}</span>
     </div>
   `
   );

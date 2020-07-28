@@ -67,11 +67,13 @@
           <nav class="mdl-navigation">
 
             <div class="mdl-navigation__link">
+
               <span class="chip mdl-chip mdl-chip--contact">
-                <span class="mdl-chip__contact mdl-color--indigo-50 user-avatar">{{
+                <span class="mdl-chip__contact mdl-color--indigo-50 avatar">{{
                   avatar }}</span>
-                <span class="mdl-chip__text user-name">{{ name }}</span>
+                <span class="mdl-chip__text">{{ name }}</span>
               </span>
+
             </div>
 
             <a class="mdl-navigation__link" href="{{ url_for('main.login') }}">Logout</a>
