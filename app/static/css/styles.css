@@ -60,6 +60,7 @@
 }
 
 .chat-box {
+  position: relative;
   width: 100%;
   height: calc(100% - 70px);
   overflow-y: scroll;
