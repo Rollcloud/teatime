@@ -17,7 +17,7 @@ function addUser(user) {
   let character = stringToHTML(
     `
     <div class="character" id="${user.token}">
-        <span class="character-avatar">${user.avatar}</span>
+        <span class="character-avatar avatar">${user.avatar}</span>
         <span class="character-name">${user.name}</span>
     </div>
   `
