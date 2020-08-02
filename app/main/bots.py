@@ -1,8 +1,9 @@
+import re
 import uuid
 
 from collections import deque
 from pathlib import Path
-from random import choice
+from random import choice, sample
 
 from flask import session
 
@@ -56,17 +57,34 @@ class Ehco(Behaviour):
     '''Repeat the last message, but scramble the middle letters'''
 
     def perform(self):
+        xml_tags = re.compile('<.*?>')
+
+        def scramble(word):
+            # jumble middle letters
+            if len(word) > 3:
+                return (
+                    word[:1]
+                    + ''.join(sample(list(word[1:-1]), len(word[1:-1])))
+                    + word[-1:]
+                )
+            else:
+                return word
+
         while self.bot.is_alive:
             try:
-                # check for last message
-                event, message = self.bot.receive()
+                event = None
+                while event != 'message':
+                    # check for last message
+                    event, message = self.bot.receive()
+                    socketio.sleep(0.2)
 
-                if event == 'message':
-                    self.bot.speak(message['msg'])
+                # process found message
+                text = re.sub(xml_tags, '', message['msg'])
+                words = [scramble(word) for word in text.split()]
+                self.bot.speak(' '.join(words))
+
             except NoNewMessagesException:  # no messages are available
-                pass
-
-            socketio.sleep(2)
+                socketio.sleep(2)
 
 
 class Follow(Behaviour):
