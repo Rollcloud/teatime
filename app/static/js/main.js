@@ -108,6 +108,10 @@ $(document).ready(function() {
   });
 
   socket.on('message', function(data) {
+    writeToChat(data.handle + ": " + data.msg);
+  });
+
+  socket.on('status', function(data) {
     writeToChat(data.msg);
   });
 
