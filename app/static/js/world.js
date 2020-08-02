@@ -26,7 +26,7 @@ world.addCharacter = function(data) {
 };
 
 world.removeCharacter = function(token) {
-  world.characters[token] = undefined;
+  delete world.characters[token]
 };
 
 world.checkMove = function(delta) {
@@ -118,7 +118,7 @@ world.collides = function(x, y) {
 
   // check for collisions with other characters
   for (const [token, character] of Object.entries(world.characters)) {
-    if (character.pos_x == x && character.pos_y == y) return true;
+    if (character !== undefined && character.pos_x == x && character.pos_y == y) return true;
   }
 
   return false;
