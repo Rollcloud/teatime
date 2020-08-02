@@ -70,9 +70,9 @@
   width: 100%;
 }
 
-.loadscreen.success{
-    opacity: 0;
-    visibility: hidden;
+.loadscreen.success {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .loadscreen {
