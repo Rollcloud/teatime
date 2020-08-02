@@ -19,6 +19,6 @@ def create_app(debug=False):
 
     app.register_blueprint(main_blueprint)
 
-    socketio.init_app(app)
+    socketio.init_app(app)  # , logger=True, engineio_logger=True)
 
     return app

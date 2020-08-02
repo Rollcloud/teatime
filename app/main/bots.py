@@ -1,12 +1,14 @@
 import uuid
 
+from collections import deque
 from pathlib import Path
 from random import choice
 
-from flask import current_app, session
+from flask import session
 
 from .. import socketio
-from . import agents, lists
+from . import agents, events, lists
+from .forms import LoginForm
 
 p = Path('.')
 q = p / 'app' / 'static' / 'quotes.txt'
@@ -15,24 +17,31 @@ with q.open() as f:
     quotes = f.read().split('\n\n')
 
 
-def create_client():
-    # log the user in through Flask test client
-    return current_app.test_client()
-
-
-def upgrade_to_sio_client(test_client):
-    # connect to Socket.IO without being logged in
-    return socketio.test_client(namespace='/chat', flask_test_client=test_client)
+class NoNewMessagesException(IndexError):
+    pass
 
 
 class Behaviour:
     '''Create a parent class that provides bots with a certain behaviour'''
 
-    pass
+    def __init__(self, bot):
+        self.bot = bot
+
+    def perform(self):
+        self.bot.speak(f"I'm sorry, I'm not able to {self.__class__.__name__}")
 
 
-class Silence(Behaviour):
-    pass
+class Silent(Behaviour):
+    def perform(self):
+        pass
+
+
+class Quote(Behaviour):
+    def perform(self):
+        for each in range(6):
+            message = choice(quotes)
+            self.bot.speak('<br>' + message.replace('\n', '<br>') + '<br>')
+            socketio.sleep(10)
 
 
 class Rollcall(Behaviour):
@@ -46,7 +55,58 @@ class Rollcall(Behaviour):
 class Ehco(Behaviour):
     '''Repeat the last message, but scramble the middle letters'''
 
-    pass
+    def perform(self):
+        while self.bot.is_alive:
+            try:
+                # check for last message
+                event, message = self.bot.receive()
+
+                if event == 'message':
+                    self.bot.speak(message['msg'])
+            except NoNewMessagesException:  # no messages are available
+                pass
+
+            socketio.sleep(2)
+
+
+class Follow(Behaviour):
+    '''Say nothing but follow its creator around'''
+
+    def perform(self):
+        def sign(number):
+            if number == 0:
+                return 0
+
+            return number / abs(number)
+
+        def get_delta_pos_to(user):
+            dx = user.pos_x - self.bot.pos_x
+            dy = user.pos_y - self.bot.pos_y
+
+            return dx, dy
+
+        while self.bot.is_alive:
+            # check for creator's position
+            with self.bot.app.app_context():
+                creator = agents.get_user(self.bot.creator)
+
+            dx, dy = get_delta_pos_to(creator)
+            # calculate distance to creator
+            # while distance is > 2
+            # move closer to creator
+            while abs(dx) + abs(dy) > 2:
+                # move in only one direction at a time
+                move_vertically = choice([True, False])
+                if move_vertically:
+                    self.bot.move(0, sign(dy))
+                else:
+                    self.bot.move(sign(dx), 0)
+
+                socketio.sleep(0.5)
+                # update creator's position
+                dx, dy = get_delta_pos_to(creator)
+
+            socketio.sleep(5)
 
 
 class Bot(agents.User):
@@ -54,89 +114,90 @@ class Bot(agents.User):
 
     is_alive = False
 
-    def __init__(self):
+    def __init__(self, app, creator):
         name = choice(lists.names)
         emoji = choice(lists.emojis)
-        self.client = create_client()
+        token = uuid.uuid4().hex  # 32 hex-chars long
 
-        # login to create identity on server
-        self.client.post(
-            '/login', data=dict(name=name, emoji=emoji), follow_redirects=True,
-        )
-        token = session.get('token', '')
-        name = session.get('name')
+        self.messages = deque([])
 
-        super().__init__(token, name, emoji)
+        super().__init__(token, name, emoji, pos_x=21, pos_y=23)
 
-        self.behaviour = choice([Silence, Rollcall, Ehco])()
+        self.app = app
+        self.creator = creator
+        # self.behaviour = Quote(self)
+        self.behaviour = choice([Silent, Quote, Rollcall, Ehco, Follow])(self)
+
+    def send(self, event, message):
+        self.messages.append((event, message))
+
+    def receive(self):
+        try:
+            return self.messages.popleft()
+        except IndexError as err:
+            raise NoNewMessagesException(err)
 
     def start(self):
         print(f"{self}: Loading...")
-
-        self.client = upgrade_to_sio_client(self.client)
-
-        if not self.client.is_connected:
-            raise Exception(f"{self}: client not connected")
-
         self.is_alive = True
-
-        print(f"{self}: Ready and at your service!")
+        with self.app.app_context():
+            events.new_user_joined(self)
+        self.speak(f"Hello, I am a {self.behaviour.__class__.__name__}-bot")
 
     def stop(self):
         print(f"{self}: Powering doowwwnnnn.....")
+        self.speak(f"B-bye, I'm off")
+        with self.app.app_context():
+            events.user_left(self)
         self.is_alive = False
 
-    def join_room(self, rid):
-        print(f"{self}: Entering '{rid}'")
-        self.rid = rid
-        join_room(rid)
-
-        areas.add_member_to_area(self, rid)
-
     def speak(self, words):
-        print(f"{self}: speaking to '{self.rid}'")
-        emit('message', {'msg': self.handle + ':' + words})
+        # print(f"{self}: speaking: \"{words[:20]}...\"")
+        events.handle_text(self, words)
 
-    def quote(self):
-        message = choice(quotes)  # .replace('\n', '<br>')
-        self.speak("<pre>" + message + "</pre>")
+    def move(self, dx, dy):
+        delta = {'x': dx, 'y': dy}
+        events.handle_move(self, delta)
 
 
-def run_bot(bot):
+class NoTokenException(KeyError):
+    pass
 
+
+class AmbiguousTokenException(KeyError):
+    pass
+
+
+def bot_routine(bot):
     bot.start()
-
-    # while bot.is_alive:
-    #     print(f"{bot}: Brrrooop Barp!")
-    #     bot.quote()
-    #     sleep(6)
-
-    # bot.stop()
-
-    for each in range(10):
-        print(f"{bot}: Brrrooop Barp!")
-        bot.quote()
-        # sleep(6)
-
+    bot.behaviour.perform()
     bot.stop()
 
 
-def create_bot():
-    bot = Bot()
+def create_bot(current_app, creator):
+    bot = Bot(current_app._get_current_object(), creator)
     agents.add_user(bot)
-    socketio.start_background_task(run_bot, bot)
 
     return bot
 
 
+def run(bot):
+    socketio.start_background_task(bot_routine, bot)
+
+
 def destroy_bot(token_hint):
-    users = current_app.users
-    possible_tokens = [token for token in users.keys()]
+    users = agents.get_users()
+    possible_tokens = [
+        user.token for user in users if user.token.startswith(token_hint)
+    ]
+
+    if len(possible_tokens) == 0:
+        raise NoTokenException(f"no tokens match '{token_hint}'")
 
     if len(possible_tokens) > 1:
         raise AmbiguousTokenException(f"multiple tokens match '{token_hint}'")
 
     bot = agents.remove_user(possible_tokens[0])
-    bot.stop()
+    bot.is_alive = False
 
     return bot

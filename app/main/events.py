@@ -1,9 +1,73 @@
-from flask import request, session, url_for
-from flask_socketio import emit, join_room, leave_room, rooms
+from flask import current_app, request, session, url_for
 
 from .. import socketio
 from . import agents
 from . import bots
+
+
+def new_user_joined(user):
+    print(f"⭐ - {user} connected")
+
+    # forward new user message to all other connected clients
+    user.emit(
+        'user_joined', {'user': user.asdict()}, broadcast=True, include_self=False
+    )
+
+    agents.add_user(user)
+
+    # send own token to this connector
+    user.emit('identify', {'token': user.token})
+    # send all currently connected users to this connector
+    for u in agents.get_users():
+        user.emit('user_joined', {'user': u.asdict()})
+
+
+def handle_text(user, message):
+    # forward message to all connected clients
+    user.emit('message', {'handle': user.handle, 'msg': message}, broadcast=True)
+
+    # special commands - only available to humans
+    if type(user) == agents.User:
+
+        # create bot
+        if message == "bot+":
+            bot = bots.create_bot(current_app, user.token)
+            user.emit(
+                'status', {'msg': f"{user.handle} created bot {bot}"}, broadcast=True
+            )
+            bots.run(bot)
+
+        # kill bot
+        elif message.startswith("bot-"):
+            token_hint = message.split('bot-')[1]
+            try:
+                bot = bots.destroy_bot(token_hint)
+                user.emit(
+                    'status',
+                    {'msg': f"{user.handle} killed bot {bot.token}"},
+                    broadcast=True,
+                )
+            except KeyError as err:
+                print(f"💥 Warning: {err}")
+
+
+def handle_move(user, delta):
+    user.pos_y += delta['y']
+    user.pos_x += delta['x']
+
+    response = {'token': user.token, 'pos_x': user.pos_x, 'pos_y': user.pos_y}
+
+    # forward message to all connected clients
+    user.emit('move', response, broadcast=True, include_self=False)
+
+
+def user_left(user):
+    print(f"💢 - {user} disconnecting")
+
+    agents.remove_user(user.token)
+
+    # forward message to all connected clients
+    user.emit('user_left', {'user': user.asdict()}, broadcast=True)
 
 
 @socketio.on("connect", namespace="/chat")
@@ -21,22 +85,11 @@ def connect():
         pos_x = existing_user.pos_x
         pos_y = existing_user.pos_y
     except KeyError as err:
-        pos_x = 0
-        pos_y = 0
+        pos_x = 20
+        pos_y = 23
+    user = agents.User(token, name, avatar, pos_x, pos_y, sid=request.sid)
 
-    user = agents.User(token, name, avatar, pos_x, pos_y)
-    print(f"⭐ - {user} connected")
-
-    # forward new user message to all connected clients
-    emit('user_joined', {'user': user.asdict()}, broadcast=True, include_self=False)
-
-    agents.add_user(user)
-
-    # send own token to this connector
-    emit('identify', {'token': user.token})
-    # send all currently connected users to this connector
-    for user in agents.get_users():
-        emit('user_joined', {'user': user.asdict()})
+    new_user_joined(user)
 
 
 @socketio.on('text', namespace='/chat')
@@ -47,26 +100,7 @@ def text(message):
     user = agents.get_user(token)
     message = message['msg']
 
-    # forward message to all connected clients
-    emit(
-        'message', {'msg': f"{user.handle}: {message}"}, broadcast=True
-    )  # , room='optional'
-
-    # special commands
-
-    # create bot
-    if message == "bot+":
-        bot = bots.create_bot()
-        emit('status', {'msg': f"{user.handle} created bot {bot}"}, broadcast=True)
-
-    # kill bot
-    elif message.startswith("bot-"):
-        token_hint = message.split('bot-')[1]
-        try:
-            bots.destroy_bot(token_hint)
-            emit('status', {'msg': f"{user.handle} killed bot {token}"}, broadcast=True)
-        except KeyError as err:
-            print(f"💥 Warning: {err}")
+    handle_text(user, message)
 
 
 @socketio.on('move', namespace='/chat')
@@ -75,13 +109,8 @@ def move(delta):
     The message is sent to all people in the room."""
     token = delta['token']
     user = agents.get_user(token)
-    user.pos_y += delta['y']
-    user.pos_x += delta['x']
 
-    response = {'token': token, 'pos_x': user.pos_x, 'pos_y': user.pos_y}
-
-    # forward message to all connected clients
-    emit('move', response, broadcast=True, include_self=False)
+    handle_move(user, delta)
 
 
 @socketio.on("disconnect", namespace="/chat")
@@ -89,7 +118,4 @@ def disconnect():
     token = session.get('token')
     user = agents.get_user(token)
 
-    print(f"💢 - {user} disconnecting")
-
-    # forward message to all connected clients
-    emit('user_left', {'user': user.asdict()}, broadcast=True)
+    user_left(user)
