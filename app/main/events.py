@@ -3,6 +3,7 @@ from flask import current_app, request, session, url_for
 from .. import socketio
 from . import agents
 from . import bots
+from . import lists
 
 
 def new_user_joined(user):
@@ -36,6 +37,17 @@ def handle_text(user, message):
                 'status', {'msg': f"{user.handle} created bot {bot}"}, broadcast=True
             )
             bots.run(bot)
+
+        # create alphabots
+        if message == "bot++":
+            for name in lists.names:
+                bot = bots.create_bot(current_app, user.token, name=name)
+                user.emit(
+                    'status',
+                    {'msg': f"{user.handle} created bot {bot}"},
+                    broadcast=True,
+                )
+                bots.run(bot)
 
         # kill bot
         elif message.startswith("bot-"):

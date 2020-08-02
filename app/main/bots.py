@@ -50,7 +50,30 @@ class Rollcall(Behaviour):
     Each bot knows its order and annouces its position after
     the previous bot has annouced theirs'''
 
-    pass
+    def perform(self):
+        current_idx = lists.names.index(self.bot.name)
+        previous_name = lists.names[current_idx - 1]
+
+        while self.bot.is_alive:
+            try:
+                event = None
+                message = None
+                while (
+                    event == 'message'
+                    and type(message) == dict
+                    and 'msg' in message
+                    and message['msg'] == previous_name
+                ) is False:
+                    # check for last message
+                    event, message = self.bot.receive()
+                    socketio.sleep(0.2)
+
+                # process found message
+                self.bot.speak(self.bot.name)
+                socketio.sleep(0.2)
+
+            except NoNewMessagesException:  # no messages are available
+                socketio.sleep(1)
 
 
 class Ehco(Behaviour):
@@ -82,6 +105,7 @@ class Ehco(Behaviour):
                 text = re.sub(xml_tags, '', message['msg'])
                 words = [scramble(word) for word in text.split()]
                 self.bot.speak(' '.join(words))
+                socketio.sleep(0.2)
 
             except NoNewMessagesException:  # no messages are available
                 socketio.sleep(2)
@@ -132,8 +156,8 @@ class Bot(agents.User):
 
     is_alive = False
 
-    def __init__(self, app, creator):
-        name = choice(lists.names)
+    def __init__(self, app, creator, name=None):
+        name = name if name else choice(lists.names)
         emoji = choice(lists.emojis)
         token = uuid.uuid4().hex  # 32 hex-chars long
 
@@ -143,8 +167,8 @@ class Bot(agents.User):
 
         self.app = app
         self.creator = creator
-        # self.behaviour = Quote(self)
-        self.behaviour = choice([Silent, Quote, Rollcall, Ehco, Follow])(self)
+        self.behaviour = Rollcall(self)
+        # self.behaviour = choice([Silent, Quote, Rollcall, Ehco, Follow])(self)
 
     def send(self, event, message):
         self.messages.append((event, message))
@@ -192,8 +216,8 @@ def bot_routine(bot):
     bot.stop()
 
 
-def create_bot(current_app, creator):
-    bot = Bot(current_app._get_current_object(), creator)
+def create_bot(current_app, creator, name=None):
+    bot = Bot(current_app._get_current_object(), creator, name)
     agents.add_user(bot)
 
     return bot

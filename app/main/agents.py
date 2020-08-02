@@ -85,7 +85,7 @@ def remove_user(token):
 
 
 def get_users():
-    return current_app.users.values()
+    return list(current_app.users.values())
 
 
 def get_user(token):
