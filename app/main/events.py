@@ -2,7 +2,7 @@ from flask import current_app, request, session, url_for
 
 from .. import socketio
 from . import agents
-from . import bots
+from . import behaviours
 from . import lists
 
 
@@ -32,28 +32,30 @@ def handle_text(user, message):
 
         # create bot
         if message == "bot+":
-            bot = bots.create_bot(current_app, user.token)
+            bot = behaviours.create_bot(current_app, user.token)
             user.emit(
                 'status', {'msg': f"{user.handle} created bot {bot}"}, broadcast=True
             )
-            bots.run(bot)
+            behaviours.run(bot)
 
         # create alphabots
         if message == "bot++":
             for name in lists.names:
-                bot = bots.create_bot(current_app, user.token, name=name)
+                bot = behaviours.create_bot(
+                    current_app, user.token, name=name, behaviour=behaviours.Rollcall
+                )
                 user.emit(
                     'status',
                     {'msg': f"{user.handle} created bot {bot}"},
                     broadcast=True,
                 )
-                bots.run(bot)
+                behaviours.run(bot)
 
         # kill bot
         elif message.startswith("bot-"):
             token_hint = message.split('bot-')[1]
             try:
-                bot = bots.destroy_bot(token_hint)
+                bot = behaviours.destroy_bot(token_hint)
                 user.emit(
                     'status',
                     {'msg': f"{user.handle} killed bot {bot.token}"},
