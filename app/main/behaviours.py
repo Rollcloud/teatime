@@ -47,26 +47,60 @@ class Rollcall(Behaviour):
     the previous bot has annouced theirs'''
 
     def perform(self):
+        from statemachine import StateMachine, State
+
+        class RollCallMachine(StateMachine):
+            active = State('Active', initial=True)
+            locked = State('Locked')
+
+            lock = active.to(locked)
+            activate = locked.to(active)
+
+        roll_call = RollCallMachine()
+
         current_idx = lists.names.index(self.bot.name)
         previous_name = lists.names[current_idx - 1]
+        try:
+            next_name = lists.names[current_idx + 1]
+        except IndexError:
+            # for the last name on the list, use the first index
+            next_name = lists.names[0]
 
         while self.bot.is_alive:
             try:
                 event = None
                 message = None
-                while (
-                    event == 'message'
-                    and type(message) == dict
-                    and 'msg' in message
-                    and message['msg'] == previous_name
-                ) is False:
-                    # check for last message
-                    event, message = self.bot.receive()
-                    socketio.sleep(0.2)
 
-                # process found message
-                self.bot.speak(self.bot.name)
-                socketio.sleep(0.2)
+                if roll_call.is_active:
+                    while (
+                        event == 'message'
+                        and type(message) == dict
+                        and 'msg' in message
+                        and message['msg'] == previous_name
+                    ) is False:
+                        # check for last message
+                        event, message = self.bot.receive()
+                        socketio.sleep(0.2)
+
+                    # process found message
+                    self.bot.speak(self.bot.name)
+                    roll_call.lock()
+
+                if roll_call.is_locked:
+                    while (
+                        event == 'message'
+                        and type(message) == dict
+                        and 'msg' in message
+                        and message['msg'] == next_name
+                    ) is False:
+                        # check for last message
+                        event, message = self.bot.receive()
+                        socketio.sleep(0.2)
+
+                    # process found message
+                    roll_call.activate()
+
+                socketio.sleep(1)
 
             except NoNewMessagesException:  # no messages are available
                 socketio.sleep(1)

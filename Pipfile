@@ -12,6 +12,7 @@ eventlet= "*"
 flask-socketio= "*"
 flask-wtf= "*"
 Flask= "*"
+python-statemachine = "*"
 
 [requires]
 python_version = "3.6"
