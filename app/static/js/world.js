@@ -7,8 +7,8 @@ world.maps = {
     'grid': { 'x': 8, 'y': 8 }
   },
   'forest-glade': {
-    'filename': 'forest-glade.png',
-    'pixels': { 'x': 4200, 'y': 4200 },
+    'filename': 'forest-glade-med.png',
+    'pixels': { 'x': 1920, 'y': 1920 },
     'grid': { 'x': 30, 'y': 30 }
   },
   'observatory-tea': {
