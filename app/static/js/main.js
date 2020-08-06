@@ -115,41 +115,67 @@ $(document).ready(function() {
     writeToChat(data.msg);
   });
 
-  document.addEventListener('keydown', event => {
-    const key = event.key; // "ArrowRight", "ArrowLeft", "ArrowUp", or "ArrowDown"
-    switch (key) {
-      case "ArrowLeft":
-        sendMovement(0, -1);
-        break;
-      case "ArrowRight":
-        sendMovement(0, 1);
-        break;
-      case "ArrowUp":
-        sendMovement(-1, 0);
-        break;
-      case "ArrowDown":
-        sendMovement(1, 0);
-        break;
-    }
+  document.querySelector('.chat-bar').addEventListener('click', event => {
+    $('#chat-input').focus();
   });
 
-  document.querySelector('#chat-input').addEventListener('keyup', event => {
-    let code = event.keyCode || event.which;
-    if (code == 13) { // enter
-      text = $('#chat-input').val();
-      $('#chat-input').val('');
-      past_messages.unshift(text);
-      socket.emit('text', { msg: text });
-      message_num = 0
+  let lastDown = 0;
+  document.addEventListener('keydown', event => {
+    const key = event.key; // "Enter", "ArrowRight", "ArrowLeft", "ArrowUp", or "ArrowDown"
 
-    } else if (code == 38) { // up-arrow
-      $('#chat-input').val(past_messages[message_num]);
-      message_num += 1
+    if (document.querySelector('#chat-input') === document.activeElement) {
+      // if chat box is active
+      switch (key) {
 
-    } else if (code == 39) { // down-arrow
-      message_num -= 1
-      $('#chat-input').val(past_messages[message_num]);
+        case "Enter":
+          text = $('#chat-input').val();
+          $('#chat-input').val('');
+          past_messages.unshift(text);
+          socket.emit('text', { msg: text });
+          message_num = 0
+          break;
+
+        case "ArrowUp":
+          $('#chat-input').val(past_messages[message_num]);
+          message_num += 1
+          break;
+
+        case "ArrowDown":
+          message_num -= 1
+          $('#chat-input').val(past_messages[message_num]);
+          break;
+      }
+
+    } else {
+      // if map is active
+
+      // each movement is animated for 0.15s
+      // check if previous event still processing before triggering again
+      let now = Date.now();
+
+      if (now > lastDown + 125) { // check timout in milliseconds
+        switch (key) {
+          case "ArrowLeft":
+            sendMovement(0, -1);
+            lastDown = now;
+            break;
+          case "ArrowRight":
+            sendMovement(0, 1);
+            lastDown = now;
+            break;
+          case "ArrowUp":
+            sendMovement(-1, 0);
+            lastDown = now;
+            break;
+          case "ArrowDown":
+            sendMovement(1, 0);
+            lastDown = now;
+            break;
+        }
+      }
+
     }
+
   });
 
 });
