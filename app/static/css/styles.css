@@ -1,5 +1,9 @@
 /* All */
 
+* {
+  font-family: Roboto, Segoe UI Emoji, Segoe UI Symbol, Segoe UI, Apple Color Emoji, Twemoji Mozilla, Noto Color Emoji, EmojiOne Color, Android Emoji, Helvetica, Arial, sans-serif !important;
+}
+
 .mdl-cell {
   padding: 0.5rem;
 }
@@ -19,8 +23,6 @@
 }
 
 .character {
-  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-
   color: rgba(0, 0, 0, .87);
 
   white-space: nowrap;
@@ -31,7 +33,6 @@
   translate: -50% -50%;
 }
 .avatar {
-  font-family: Ubuntu;
   background-color: #e8eaf6;
 }
 .character-avatar {
