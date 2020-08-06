@@ -8,7 +8,8 @@
 }
 
 .world-camera {
-    position: absolute;
+  position: absolute;
+  transition: top 0.125s ease-in-out, left 0.125s ease-in-out;
 }
 
 .world-map {
@@ -17,4 +18,10 @@
 
   background-color: #82a559;
   background-repeat: no-repeat;
+}
+
+.world .character {
+  position: absolute;
+  translate: -50% -50%;
+  transition: top 0.125s ease-in-out, left 0.125s ease-in-out;
 }
