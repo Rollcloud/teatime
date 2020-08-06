@@ -74,6 +74,10 @@
   width: 100%;
 }
 
+.chat-message input {
+  border-bottom-color: #c5cae977;
+}
+
 .loadscreen.success {
   opacity: 0;
   visibility: hidden;
