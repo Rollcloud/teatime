@@ -27,6 +27,7 @@
 }
 
 .world .character-direction {
+  visibility: hidden;
   background: rgba(0, 128, 255, 0.2);
   height: calc(64px * 2 - 1px);
   width: calc(64px * 3 - 1px);

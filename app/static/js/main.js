@@ -118,6 +118,11 @@ $(document).ready(function() {
 
     addUser(user);
     if (user.token == myToken) {
+      // make my direction-box visible
+      document.getElementById(myToken).querySelector('.character-direction').style
+        .visibility = 'visible';
+
+      // position camera
       world.moveCamera(user);
       // remove loading screen
       // document.querySelector('.loadscreen .mdl-spinner').classList.remove('is-active');
