@@ -30,7 +30,7 @@ class Behaviour:
 
 class Silent(Behaviour):
     def perform(self):
-        pass
+        self.bot.speak(f"Shhh...")
 
 
 class Quote(Behaviour):
