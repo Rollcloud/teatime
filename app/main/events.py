@@ -6,6 +6,15 @@ from . import behaviours
 from . import lists
 
 
+behaviour_flag = {
+    'e': behaviours.Ehco,
+    'f': behaviours.Follow,
+    'q': behaviours.Quote,
+    'r': behaviours.Rollcall,
+    's': behaviours.Silent,
+}
+
+
 def new_user_joined(user):
     print(f"⭐ - {user} connected")
 
@@ -35,8 +44,15 @@ def handle_text(user, message, recipients=None):
     if type(user) == agents.User:
 
         # create bot
-        if message == "bot+":
-            bot = behaviours.create_bot(current_app, user.token)
+        if message.startswith("bot+"):
+            try:
+                # specify bot type after plus, eg: bot+q
+                bot_type = message.split('+')[1]
+            except KeyError:  # if no bot type provided after +, eg: bot+
+                bot_type = None
+            bot = behaviours.create_bot(
+                current_app, user.token, behaviour=behaviour_flag[bot_type]
+            )
             user.emit(
                 'status', {'msg': f"{user.handle} created bot {bot}"}, broadcast=True
             )
