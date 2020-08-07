@@ -9,7 +9,7 @@
 
 .world-camera {
   position: absolute;
-  transition: top 0.125s ease-in-out, left 0.125s ease-in-out;
+  transition: top 0.125s linear, left 0.125s linear;
 }
 
 .world-map {
@@ -23,5 +23,31 @@
 .world .character {
   position: absolute;
   translate: -50% -50%;
-  transition: top 0.125s ease-in-out, left 0.125s ease-in-out;
+  transition: top 0.125s linear, left 0.125s linear;
+}
+
+.world .character-direction {
+  background: rgba(0, 128, 255, 0.2);
+  height: calc(64px * 2 - 1px);
+  width: calc(64px * 3 - 1px);
+  display: block;
+  position: absolute;
+  z-index: -5;
+  margin-top: -64px;
+  margin-left: -64px;
+  border: 1px solid rgb(0, 128, 255);
+  transform-origin: center 97px;
+  transition: transform 0.2s ease-in;
+}
+.character-direction.dir-N {
+  transform: rotate(0deg);
+}
+.character-direction.dir-E {
+  transform: rotate(90deg);
+}
+.character-direction.dir-S {
+  transform: rotate(180deg);
+}
+.character-direction.dir-W {
+  transform: rotate(270deg);
 }

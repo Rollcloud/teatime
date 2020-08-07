@@ -22,6 +22,7 @@ world.maps = {
 world.characters = {};
 
 world.addCharacter = function(data) {
+  data.direction = 0;
   world.characters[data.token] = data;
 };
 
@@ -102,6 +103,10 @@ world.updateCamera = function() {
   cameraElement.style.top = map_top + 'px';
 };
 
+world.getSquareNumber = function(x, y) {
+  return y * world.map.grid.x + x;
+}
+
 world.collides = function(x, y) {
   // check for map borders
   if (x < 0 || y < 0) return true;
@@ -109,7 +114,7 @@ world.collides = function(x, y) {
 
   // check for map obsticals
   if (map.hasOwnProperty('json')) {
-    square_num = y * world.map.grid.x + x;
+    square_num = getSquareNumber(x,y);
     for (var i = world.map.collisions.length - 1; i >= 0; i--) {
       if (square_num == world.map.collisions[i])
         return true;

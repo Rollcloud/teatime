@@ -41,3 +41,7 @@ const loadJSON = (url, callback) => {
   };
   xobj.send(null);
 }
+
+function calcAngleDegrees(x, y) {
+  return (Math.atan2(y, -x) * 180 / Math.PI + 360) % 360;
+}

@@ -5,6 +5,7 @@ let past_messages = [];
 let model = {
   'users': [],
 };
+let dirClasses = ['dir-N', 'dir-E', 'dir-S', 'dir-W'];
 
 function addUser(user) {
   // add to model
@@ -17,6 +18,7 @@ function addUser(user) {
   let character = stringToHTML(
     `
     <div class="character" id="${user.token}">
+        <span class="character-direction"></span>
         <span class="character-avatar avatar">${user.avatar}</span>
         <span class="character-name">${user.name}</span>
     </div>
@@ -48,17 +50,34 @@ function writeToChat(text) {
 }
 
 function sendMovement(vertical, horizontal) {
-  delta = {
+  let delta = {
     'token': myToken,
     'x': horizontal,
     'y': vertical
   };
-  if (world.checkMove(delta)) {
-    let data = world.getCharacterData(delta);
-    world.moveCharacter(data);
-    world.moveCamera(data);
+  let newDirection = calcAngleDegrees(vertical, horizontal);
 
-    socket.emit('move', delta);
+  // * First rotate character, then move
+  // if character is facing the movement direction
+  if (world.characters[myToken].direction == newDirection) {
+    // move character
+    if (world.checkMove(delta)) {
+      let data = world.getCharacterData(delta);
+      world.moveCharacter(data);
+      world.moveCamera(data);
+
+      socket.emit('move', delta);
+    }
+  } else {
+    // face new direction
+    let characterDirection = document.getElementById(myToken).querySelector(
+      '.character-direction');
+    // get new direction class
+    let newDirClass = dirClasses[newDirection / 90];
+    characterDirection.classList.remove(...dirClasses);
+    characterDirection.classList.add(newDirClass);
+    // update character direction
+    world.characters[myToken].direction = newDirection;
   }
 }
 
