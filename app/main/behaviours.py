@@ -174,7 +174,7 @@ class Follow(Behaviour):
                 else:
                     self.bot.move(sign(dx), 0)
 
-                socketio.sleep(0.5)
+                socketio.sleep(0.3)
                 # update creator's position
                 dx, dy = get_delta_pos_to(creator)
 
