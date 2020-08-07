@@ -23,9 +23,13 @@ def new_user_joined(user):
         user.emit('user_joined', {'user': u.asdict()})
 
 
-def handle_text(user, message):
-    # forward message to all connected clients
-    user.emit('message', {'handle': user.handle, 'msg': message}, broadcast=True)
+def handle_text(user, message, recipients=None):
+    if recipients:
+        # forward message to all recipients
+        user.emit('message', {'handle': user.handle, 'msg': message}, rooms=recipients)
+    else:
+        # forward message to all connected clients
+        user.emit('message', {'handle': user.handle, 'msg': message}, broadcast=True)
 
     # special commands - only available to humans
     if type(user) == agents.User:
@@ -112,9 +116,14 @@ def text(message):
     The message is sent to all people in the room."""
     token = session.get('token')
     user = agents.get_user(token)
+
+    try:
+        recipients = message['to']
+    except KeyError:
+        recipients = None
     message = message['msg']
 
-    handle_text(user, message)
+    handle_text(user, message, recipients=recipients)
 
 
 @socketio.on('move', namespace='/chat')

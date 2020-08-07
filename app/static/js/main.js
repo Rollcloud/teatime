@@ -44,6 +44,28 @@ function removeUser(token) {
   model.users = model.users.filter(e => e !== token)
 }
 
+function withinRange(you, me) {
+  let dx = you.pos_x - me.pos_x;
+  let dy = you.pos_y - me.pos_y;
+  let distance = Math.hypot(dx, dy);
+  let direction = calcAngleDegrees(dy, dx);
+  if (distance == 0 || (distance <= 1.5 && Math.abs(direction - me.direction) <= 90))
+    return true;
+  return false;
+}
+
+function getCharactersNearby(token) {
+  let nearby = [];
+  let me = world.characters[token];
+
+  // for character in world.characters
+  for (const [yourToken, you] of Object.entries(world.characters)) {
+    if (withinRange(you, me)) nearby.push(yourToken);
+  }
+
+  return nearby;
+}
+
 function writeToChat(text) {
   $('.chat-box').html($('.chat-box').html() + text + '<br>');
   $('.chat-box').scrollTop($('.chat-box')[0].scrollHeight);
@@ -150,7 +172,8 @@ $(document).ready(function() {
           text = $('#chat-input').val();
           $('#chat-input').val('');
           past_messages.unshift(text);
-          socket.emit('text', { msg: text });
+          users = getCharactersNearby(myToken);
+          socket.emit('text', { msg: text, to: users });
           message_num = 0
           break;
 

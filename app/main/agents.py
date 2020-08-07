@@ -32,13 +32,25 @@ class User:
             'pos_y': self.pos_y,
         }
 
-    def emit(self, event, message, broadcast=False, include_self=True):
+    def emit(self, event, message, broadcast=False, include_self=True, rooms=None):
         if type(self) == User:
             # if I am a User
             if broadcast:
                 for u in get_users():
                     if include_self is True or (
                         include_self is False and self.token != u.token
+                    ):
+                        if type(u) == User:
+                            # for other Users
+                            emit(event, message, namespace="/chat", room=u.sid)
+                        else:
+                            # for other non-Users
+                            u.send(event, message)
+            elif rooms:
+                # send to rooms
+                for u in get_users():
+                    if u.token in rooms or (
+                        include_self is True and self.token == u.token
                     ):
                         if type(u) == User:
                             # for other Users
@@ -54,7 +66,7 @@ class User:
             if broadcast:
                 with self.app.test_request_context("/"):
                     for u in get_users():
-                        if self.token != u.token:
+                        if self.token != u.token:  # DO NOT send to self
                             if type(u) == User:
                                 # for other Users
                                 socketio.emit(
@@ -63,9 +75,23 @@ class User:
                                 socketio.sleep(0)
                             else:
                                 # for other non-Users
-                                # DO NOT send to self
-                                if u.token != self.token:
-                                    u.send(event, message)
+                                u.send(event, message)
+            elif rooms:
+                # send to rooms
+                with self.app.test_request_context("/"):
+                    for u in get_users():
+                        if (
+                            u.token in rooms and self.token != u.token
+                        ):  # DO NOT send to self
+                            if type(u) == User:
+                                # for other Users
+                                socketio.emit(
+                                    event, message, namespace="/chat", room=u.sid
+                                )
+                                socketio.sleep(0)
+                            else:
+                                # for other non-Users
+                                u.send(event, message)
             else:
                 # DO NOT send to self - prevents echo-bots from creating infinite loops
                 pass
