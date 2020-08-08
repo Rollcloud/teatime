@@ -1,6 +1,5 @@
 import re
 
-from collections import deque
 from pathlib import Path
 from random import choice, sample
 
@@ -12,10 +11,6 @@ q = p / 'app' / 'static' / 'quotes.txt'
 
 with q.open() as f:
     quotes = f.read().split('\n\n')
-
-
-class NoNewMessagesException(IndexError):
-    pass
 
 
 class Behaviour:
@@ -41,6 +36,44 @@ class Quote(Behaviour):
             socketio.sleep(10)
 
 
+class Wait(Behaviour):
+    '''Blocking on a certain event and message combination being recieved'''
+
+    def perform(self, event_name, message_key, start_word):
+        event = None
+        message = None
+        while (
+            event == event_name
+            and message_key in message
+            and message[message_key].startswith(start_word)
+        ) is False:
+            # check for last message
+            try:
+                event, message = self.bot.receive()
+                socketio.sleep(0)
+
+            except bots.NoNewMessagesException:  # no messages are available
+                socketio.sleep(0.5)
+
+        # wait over, expected message recieved
+        return event, message
+
+
+class Listen(Behaviour):
+    def perform(self, event_name, message_key, start_word):
+        while True:
+            event, message = self.bot.receive()
+            if (
+                event == event_name
+                and message_key in message
+                and message[message_key].startswith(start_word)
+            ) is False:
+                # check the next message
+                pass
+            else:
+                return event, message
+
+
 class Rollcall(Behaviour):
     '''
     Each bot knows its order and annouces its position after
@@ -48,6 +81,8 @@ class Rollcall(Behaviour):
 
     def perform(self):
         from statemachine import StateMachine, State
+
+        wait = Wait(self.bot)
 
         class RollCallMachine(StateMachine):
             active = State('Active', initial=True)
@@ -67,43 +102,22 @@ class Rollcall(Behaviour):
             next_name = lists.names[0]
 
         while self.bot.is_alive:
-            try:
-                event = None
-                message = None
+            if roll_call.is_active:
+                # wait for previous name
+                wait.perform('message', 'msg', previous_name)
 
-                if roll_call.is_active:
-                    while (
-                        event == 'message'
-                        and type(message) == dict
-                        and 'msg' in message
-                        and message['msg'] == previous_name
-                    ) is False:
-                        # check for last message
-                        event, message = self.bot.receive()
-                        socketio.sleep(0.2)
+                # react to waiting
+                self.bot.speak(self.bot.name)
+                roll_call.lock()
 
-                    # process found message
-                    self.bot.speak(self.bot.name)
-                    roll_call.lock()
+            if roll_call.is_locked:
+                # wait for previous name
+                wait.perform('message', 'msg', next_name)
 
-                if roll_call.is_locked:
-                    while (
-                        event == 'message'
-                        and type(message) == dict
-                        and 'msg' in message
-                        and message['msg'] == next_name
-                    ) is False:
-                        # check for last message
-                        event, message = self.bot.receive()
-                        socketio.sleep(0.2)
+                # react to waiting
+                roll_call.activate()
 
-                    # process found message
-                    roll_call.activate()
-
-                socketio.sleep(1)
-
-            except NoNewMessagesException:  # no messages are available
-                socketio.sleep(1)
+            socketio.sleep(1)
 
 
 class Ehco(Behaviour):
@@ -111,6 +125,7 @@ class Ehco(Behaviour):
 
     def perform(self):
         xml_tags = re.compile('<.*?>')
+        listen = Listen(self.bot)
 
         def scramble(word):
             # jumble middle letters
@@ -125,11 +140,7 @@ class Ehco(Behaviour):
 
         while self.bot.is_alive:
             try:
-                event = None
-                while event != 'message':
-                    # check for last message
-                    event, message = self.bot.receive()
-                    socketio.sleep(0.2)
+                event, message = listen.perform('message', 'msg', '')
 
                 # process found message
                 text = re.sub(xml_tags, '', message['msg'])
@@ -137,12 +148,20 @@ class Ehco(Behaviour):
                 self.bot.speak(' '.join(words))
                 socketio.sleep(0.2)
 
-            except NoNewMessagesException:  # no messages are available
+            except bots.NoNewMessagesException:  # no messages are available
                 socketio.sleep(2)
 
 
 class Follow(Behaviour):
     '''Say nothing but follow its creator around'''
+
+    def __init__(self, bot, target_token=None):
+        self.target_token = target_token
+        super().__init__(bot)
+
+    def set_target(self, token):
+        '''Set the target to follow'''
+        self.target_token = token
 
     def perform(self):
         def sign(number):
@@ -157,70 +176,56 @@ class Follow(Behaviour):
 
             return dx, dy
 
-        while self.bot.is_alive:
-            # check for creator's position
-            with self.bot.app.app_context():
-                creator = agents.get_user(self.bot.creator)
+        if self.target_token:  # if target is present
 
-            dx, dy = get_delta_pos_to(creator)
-            # calculate distance to creator
+            # check target's position
+            with self.bot.app.app_context():
+                target = agents.get_user(self.target_token)
+
+            dx, dy = get_delta_pos_to(target)
+            # calculate distance to target
             # while distance is > 2
-            # move closer to creator
+            # move closer to target
             while abs(dx) + abs(dy) > 2:
                 # move in only one direction at a time
-                move_vertically = choice([True, False])
+                move_vertically = sign(dx) == 0 or (
+                    (sign(dy) != 0 and sign(dx) != 0) and choice([True, False])
+                )
                 if move_vertically:
                     self.bot.move(0, sign(dy))
                 else:
                     self.bot.move(sign(dx), 0)
 
                 socketio.sleep(0.3)
-                # update creator's position
-                dx, dy = get_delta_pos_to(creator)
+                # update target's position
+                dx, dy = get_delta_pos_to(target)
 
-            socketio.sleep(5)
+        socketio.sleep(2)
 
 
-class CleverBot(bots.Bot):
-    def __init__(self, app, creator, name=None, behaviour=None):
-
-        self.creator = creator
-        self.behaviour = (
-            behaviour(self)
-            if behaviour
-            else choice([Ehco, Follow, Quote, Rollcall, Silent])(self)
-        )
-
-        self.messages = deque([])
-
-        super().__init__(app, name=name)
-
-    def send(self, event, message):
-        """Store incoming messages"""
-        self.messages.append((event, message))
-
-    def receive(self):
-        try:
-            return self.messages.popleft()
-        except IndexError as err:
-            raise NoNewMessagesException(err)
-
+class Puppy(Behaviour):
     def perform(self):
-        """Act on assigned behaviours"""
-        self.behaviour.perform()
+        """Behave like a (well-trained) puppy"""
+        # when someone says '{name} come', follow that person
+        # when that person says '{name} stay', stop following
 
+        bot = self.bot
+        listen = Listen(bot)
+        follow = Follow(bot)
 
-def create_bot(current_app, creator, name=None, behaviour=None):
-    bot = CleverBot(current_app._get_current_object(), creator, name, behaviour)
-    agents.add_user(bot)
+        while bot.is_alive:
+            try:
+                event, message = listen.perform('message', 'msg', bot.name)
+                # identify sender
+                sender = message['token']
+                command = message['msg'].split(' ')[1]
+                if command == 'come':
+                    follow.set_target(sender)
+                    bot.speak("Woof woof!")
+                elif command == 'stay':
+                    follow.set_target(None)
+                    bot.speak("Woof!")
 
-    return bot
-
-
-# convenience functions
-def run(bot):
-    return bots.run(bot)
-
-
-def destroy_bot(token_hint):
-    return bots.destroy_bot(token_hint)
+            except bots.NoNewMessagesException:  # no messages are available
+                follow.perform()
+                socketio.sleep(1)
