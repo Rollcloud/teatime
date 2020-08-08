@@ -1,11 +1,19 @@
 /* All */
 
-* {
-  font-family: Roboto, Segoe UI Emoji, Segoe UI Symbol, Segoe UI, Apple Color Emoji, Twemoji Mozilla, Noto Color Emoji, EmojiOne Color, Android Emoji, Helvetica, Arial, sans-serif !important;
+div, span {
+  font-family: Roboto, Segoe UI Emoji, Segoe UI Symbol, Segoe UI, Apple Color Emoji, Twemoji Mozilla, Noto Color Emoji, EmojiOne Color, Android Emoji, Helvetica, Arial, sans-serif;
 }
 
 .mdl-cell {
   padding: 0.5rem;
+}
+
+.mdl-button--icon {
+  padding-top: 4px;
+}
+
+.mdl-menu__item .material-icons-round {
+  vertical-align: text-bottom;
 }
 
 .center {
@@ -67,7 +75,8 @@
 }
 
 .chat-message {
-  width: 100%;
+  /* leave room for volume menu */
+  width: calc(100% - 36px);
 }
 
 .chat-message input {
