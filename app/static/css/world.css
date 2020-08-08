@@ -37,7 +37,7 @@
   margin-top: -64px;
   margin-left: -64px;
   border: 1px solid rgb(0, 128, 255);
-  transform-origin: center 97px;
+  transform-origin: center calc(64px * (2 - 0.5));
   transition: transform 0.2s ease-in;
 }
 .character-direction.dir-N {
@@ -51,4 +51,18 @@
 }
 .character-direction.dir-W {
   transform: rotate(270deg);
+}
+.character-direction.volume-all {
+  height: 10000px;
+  width: 10000px;
+  margin-top: -5000px;
+  margin-left: -5000px;
+  transform-origin: center center;
+}
+.character-direction.volume-group {}
+.character-direction.volume-one {
+  height: calc(64px * 2 - 1px);
+  width: calc(64px * 1 - 1px);
+  margin-top: -64px;
+  margin-left: 0px;
 }

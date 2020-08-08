@@ -6,6 +6,7 @@ let model = {
   'users': [],
 };
 let dirClasses = ['dir-N', 'dir-E', 'dir-S', 'dir-W'];
+let volumeClasses = ['volume-one', 'volume-group', 'volume-all'];
 
 function addUser(user) {
   // add to model
@@ -48,8 +49,25 @@ function withinRange(you, me) {
   let dx = you.pos_x - me.pos_x;
   let dy = you.pos_y - me.pos_y;
   let distance = Math.hypot(dx, dy);
-  let direction = calcAngleDegrees(dy, dx);
-  if (distance == 0 || (distance <= 1.5 && Math.abs(direction - me.direction) <= 90))
+  let direction_to = calcAngleDegrees(dy, dx);
+  let direction_delta = Math.abs(direction_to - me.direction);
+  direction_delta = direction_delta > 180 ? 360 - direction_delta : direction_delta; // reduce to acute angle
+  let threshold_distance, threshold_direction;
+  switch (me.volume) {
+    case "all":
+      return true;
+      break;
+    case "group":
+      threshold_distance = 1.5;
+      threshold_direction = 90;
+      break;
+    case "one":
+      threshold_distance = 1.0;
+      threshold_direction = 0;
+      break;
+  }
+  if (distance == 0 || (distance <= threshold_distance &&
+      direction_delta <= threshold_direction))
     return true;
   return false;
 }
@@ -118,6 +136,9 @@ $(document).ready(function() {
 
     addUser(user);
     if (user.token == myToken) {
+      world.characters[myToken].direction = 0;
+      world.characters[myToken].volume = 'group';
+
       // make my direction-box visible
       document.getElementById(myToken).querySelector('.character-direction').style
         .visibility = 'visible';
@@ -163,6 +184,32 @@ $(document).ready(function() {
 
   document.querySelector('.chat-bar').addEventListener('click', event => {
     $('#chat-input').focus();
+  });
+
+  // Volume buttons
+  document.getElementById('volume-all').addEventListener('click', event => {
+    world.characters[myToken].volume = 'all';
+    let characterDirection = document.getElementById(myToken)
+      .querySelector('.character-direction');
+    characterDirection.classList.remove(...volumeClasses);
+    characterDirection.classList.add(volumeClasses[2]);
+    document.getElementById('volume-button').textContent = 'volume_up';
+  });
+  document.getElementById('volume-group').addEventListener('click', event => {
+    world.characters[myToken].volume = 'group';
+    let characterDirection = document.getElementById(myToken)
+      .querySelector('.character-direction');
+    characterDirection.classList.remove(...volumeClasses);
+    characterDirection.classList.add(volumeClasses[1]);
+    document.getElementById('volume-button').textContent = 'volume_down';
+  });
+  document.getElementById('volume-one').addEventListener('click', event => {
+    world.characters[myToken].volume = 'one';
+    let characterDirection = document.getElementById(myToken)
+      .querySelector('.character-direction');
+    characterDirection.classList.remove(...volumeClasses);
+    characterDirection.classList.add(volumeClasses[0]);
+    document.getElementById('volume-button').textContent = 'volume_mute';
   });
 
   let lastDown = 0;
