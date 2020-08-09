@@ -8,9 +8,16 @@ def create_app(debug=False):
     """Create an application."""
     app = Flask(__name__)
     app.debug = debug
-    app.config['SECRET_KEY'] = 'j&_^AJ*P5!V?5xjSCzU9'
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     app.config['EXECUTOR_PROPAGATE_EXCEPTIONS'] = True
+
+    app.config.from_object('config_default')
+    app.config.from_object('config')
+
+    if not app.config['SECRET_KEY']:
+        raise ValueError(
+            "Please set constant SECRET_KEY in 'config.py' for Flask application"
+        )
 
     with app.app_context():
         current_app.users = {}
