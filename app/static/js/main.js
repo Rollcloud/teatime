@@ -125,7 +125,8 @@ $(document).ready(function() {
   // build map
   world.createWorld('.world', 'forest-glade'); // 'observatory-tea');
 
-  socket = io.connect('http://' + document.domain + ':' +
+  var protocol = window.location.protocol;
+  socket = io.connect(protocol + '//' + document.domain + ':' +
     location.port + '/chat');
 
   socket.on('user_joined', function(data) {
