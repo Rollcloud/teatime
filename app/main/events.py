@@ -32,19 +32,20 @@ def connect():
 
 
 @socketio.on('text', namespace='/chat')
-def text(message):
+def text(data):
     """Sent by a client when the user entered a new message.
     The message is sent to all people in the room."""
     token = session.get('token')
     user = agents.get_user(token)
 
     try:
-        recipients = message['to']
+        recipients = data['to']
     except KeyError:
         recipients = None
-    message = message['msg']
+    message = data['msg']
+    volume = data['volume'] if 'volume' in data else None
 
-    actions.handle_text(user, message, recipients=recipients)
+    actions.handle_text(user, message, recipients=recipients, volume=volume)
 
 
 @socketio.on('move', namespace='/chat')

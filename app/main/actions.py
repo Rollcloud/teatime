@@ -72,19 +72,31 @@ def new_user_joined(user):
         user.emit('user_joined', {'user': u.asdict()})
 
 
-def handle_text(user, message, recipients=None):
+def handle_text(user, message, volume=None, recipients=None):
+    volume = volume if volume else 'group'
+
     if recipients:
         # forward message to all recipients
         user.emit(
             'message',
-            {'handle': user.handle, 'msg': message, 'token': user.token},
+            {
+                'handle': user.handle,
+                'msg': message,
+                'token': user.token,
+                'volume': volume,
+            },
             rooms=recipients,
         )
     else:
         # forward message to all connected clients
         user.emit(
             'message',
-            {'handle': user.handle, 'msg': message, 'token': user.token},
+            {
+                'handle': user.handle,
+                'msg': message,
+                'token': user.token,
+                'volume': volume,
+            },
             broadcast=True,
         )
 

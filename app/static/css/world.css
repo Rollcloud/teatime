@@ -29,15 +29,15 @@
 .world .character-direction {
   visibility: hidden;
   background: rgba(0, 128, 255, 0.2);
-  height: calc(64px * 2 - 1px);
-  width: calc(64px * 3 - 1px);
+  height: calc(64px * 3 - 1px);
+  width: calc(64px * 5 - 1px);
   display: block;
   position: absolute;
   z-index: -5;
-  margin-top: -64px;
-  margin-left: -64px;
+  margin-top: -128px;
+  margin-left: -128px;
   border: 1px solid rgb(0, 128, 255);
-  transform-origin: center calc(64px * (2 - 0.5));
+  transform-origin: center calc(64px * (3 - 0.5));
   transition: transform 0.2s ease-in;
 }
 .character-direction.dir-N {
@@ -53,11 +53,8 @@
   transform: rotate(270deg);
 }
 .character-direction.volume-all {
-  height: 10000px;
-  width: 10000px;
-  margin-top: -5000px;
-  margin-left: -5000px;
-  transform-origin: center center;
+  height: 0;
+  width: 0;
 }
 .character-direction.volume-group {}
 .character-direction.volume-one {
@@ -65,4 +62,5 @@
   width: calc(64px * 1 - 1px);
   margin-top: -64px;
   margin-left: 0px;
+  transform-origin: center calc(64px * (2 - 0.5));
 }

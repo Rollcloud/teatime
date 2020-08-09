@@ -58,7 +58,7 @@ function withinRange(you, me) {
       return true;
       break;
     case "group":
-      threshold_distance = 1.5;
+      threshold_distance = 2 * 1.42;
       threshold_direction = 90;
       break;
     case "one":
@@ -175,7 +175,7 @@ $(document).ready(function() {
   });
 
   socket.on('message', function(data) {
-    writeToChat(data.handle + ": " + data.msg);
+    writeToChat(`${data.handle}: <${data.volume}>${data.msg}</${data.volume}>`);
   });
 
   socket.on('status', function(data) {
@@ -225,7 +225,11 @@ $(document).ready(function() {
           $('#chat-input').val('');
           past_messages.unshift(text);
           users = getCharactersNearby(myToken);
-          socket.emit('text', { msg: text, to: users });
+          socket.emit('text', {
+            msg: text,
+            to: users,
+            volume: world.characters[myToken].volume,
+          });
           message_num = 0
           break;
 

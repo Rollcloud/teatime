@@ -4,6 +4,17 @@ div, span {
   font-family: Roboto, Segoe UI Emoji, Segoe UI Symbol, Segoe UI, Apple Color Emoji, Twemoji Mozilla, Noto Color Emoji, EmojiOne Color, Android Emoji, Helvetica, Arial, sans-serif;
 }
 
+all {
+  font-weight: bold;
+}
+
+group {
+}
+
+one {
+  font-style: oblique;
+}
+
 .mdl-cell {
   padding: 0.5rem;
 }
