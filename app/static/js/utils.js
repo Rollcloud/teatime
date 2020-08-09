@@ -45,3 +45,7 @@ const loadJSON = (url, callback) => {
 function calcAngleDegrees(x, y) {
   return (Math.atan2(y, -x) * 180 / Math.PI + 360) % 360;
 }
+
+function degToRad(degrees) {
+  return degrees * (Math.PI / 180);
+};

@@ -139,6 +139,24 @@ $(document).ready(function() {
       world.characters[myToken].direction = 0;
       world.characters[myToken].volume = 'group';
 
+      // add touch response to my character
+      let touchArea = document.getElementById(myToken);
+      let activeRegion = new ZingTouch.Region(touchArea);
+
+      activeRegion.bind(touchArea, 'pan', event => {
+        let gridSize = world.map.pixels.x / world.map.grid.x;
+        let distance = Math.round(event.detail.data[0].distanceFromOrigin / gridSize);
+        let direction = (90 - event.detail.data[0].directionFromOrigin +
+          360) % 360;
+        let down = Math.round(-1 * Math.cos(degToRad(direction)));
+        let right = Math.round(Math.sin(degToRad(direction)));
+
+        // attemp to move one block for every square gestured
+        for (var i = gridSize; i > 0; i--) {
+          sendMovement(down, right); // down, right - positive
+        }
+      });
+
       // make my direction-box visible
       document.getElementById(myToken).querySelector('.character-direction').style
         .visibility = 'visible';
