@@ -31,7 +31,9 @@ class Bot(agents.User):
 
         self.app = app
 
-        super().__init__(token, name, emoji, pos_x=21, pos_y=23)
+        super().__init__(
+            token, name, emoji, pos_x=choice(range(20)), pos_y=choice(range(20))
+        )
 
     def send(self, event, message):
         """Ignore incoming messages. To be implemented in subclasses."""
