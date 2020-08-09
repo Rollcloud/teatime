@@ -1,16 +1,19 @@
 import re
 
-from pathlib import Path
 from random import choice, sample
 
 from .. import socketio
 from . import agents, bots, lists
 
-p = Path('.')
-q = p / 'app' / 'static' / 'quotes.txt'
 
-with q.open() as f:
-    quotes = f.read().split('\n\n')
+quotes = [
+    "Be yourself; everyone else is already taken. -- Oscar Wilde",
+    "Two things are infinite: the universe and human stupidity; and I'm not sure about the universe. -- Albert Einstein",
+    "So many books, so little time. -- Frank Zappa",
+    "Live as if you were to die tomorrow. Learn as if you were to live forever. -- Mahatma Gandhi",
+    "A day without sunshine is like, you know, night. -- Steve Martin",
+    "If you judge people, you have no time to love them. -- Mother Teresa",
+    ]
 
 
 class Behaviour:
@@ -30,9 +33,8 @@ class Silent(Behaviour):
 
 class Quote(Behaviour):
     def perform(self):
-        for each in range(6):
-            message = choice(quotes)
-            self.bot.speak('<br>' + message.replace('\n', '<br>') + '<br>')
+        for quote in sample(quotes, k=len(quotes)):
+            self.bot.speak('<br>' + quote + '<br>')
             socketio.sleep(10)
 
 
