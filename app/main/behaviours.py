@@ -93,13 +93,11 @@ class Rollcall(Behaviour):
 
         roll_call = RollCallMachine()
 
-        current_idx = lists.names.index(self.bot.name)
-        previous_name = lists.names[current_idx - 1]
-        try:
-            next_name = lists.names[current_idx + 1]
-        except IndexError:
-            # for the last name on the list, use the first index
-            next_name = lists.names[0]
+        triggers = lists.names + ['Rollcall']  # prevents infinite loops
+
+        current_idx = triggers.index(self.bot.name)
+        previous_name = triggers[current_idx - 1]
+        next_name = triggers[current_idx + 1]
 
         while self.bot.is_alive:
             if roll_call.is_active:
