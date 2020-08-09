@@ -16,7 +16,7 @@ def connect():
     avatar = session.get('emoji')
 
     if token == '':
-        raise ConnectionRefusedError(f"Please login at: {url_for('.login')}")
+        raise ConnectionRefusedError(f"Please login at: {url_for('main.login')}")
 
     try:
         existing_user = agents.get_user(token)
